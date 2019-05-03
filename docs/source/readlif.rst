@@ -4,22 +4,10 @@ readlif package
 Submodules
 ----------
 
-readlif.reader module
----------------------
+.. toctree::
 
-.. automodule:: readlif.reader
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-readlif.utilities module
-------------------------
-
-.. automodule:: readlif.utilities
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+   readlif.reader
+   readlif.utilities
 
 Module contents
 ---------------
