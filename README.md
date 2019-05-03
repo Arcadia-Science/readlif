@@ -21,9 +21,9 @@ new = LifFile('./path/to/file.lif')
 This object contains a few methods to access the images contained within the Lif file. All images, in a folder or not, will be accessible sequentially from the `LifFile` object.
 ```python
 # Access a specific image directly
-img_0 = new.getImage(0)
+img_0 = new.get_image(0)
 # Create a list of images using a generator
-img_list = [i for i in new.getIterImage()]
+img_list = [i for i in new.get_iter_image()]
 ```
 The resulting `LifImage` object has a few methods to access the specific two-dimensional frame contained in the image, where z is the z position, t is the timepoint, and c is the channel.
 ```python
