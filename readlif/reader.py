@@ -9,7 +9,6 @@ class LifImage:
     get_image or get_iter_image from a LifFile object.
 
     Attributes:
-        nframes (int): number of frames in image
         path (str): path / name of the image
         dims: (x, y, z, t)
         name (str): image name
@@ -190,7 +189,7 @@ class LifFile:
     the image and data.
 
     This is based on the java openmicroscopy bioformats lif reading code
-    that is here: https://github.com/openmicroscopy/bioformats/blob/master/components/formats-gpl/src/loci/formats/in/LIFReader.java
+    that is here: https://github.com/openmicroscopy/bioformats/blob/master/components/formats-gpl/src/loci/formats/in/LIFReader.java # noqa
 
     Attributes:
         xml_header (string): The LIF xml header with tons of data

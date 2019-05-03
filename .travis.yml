@@ -4,6 +4,8 @@ matrix:
     - name: "Python 3.7.1 on Xenial Linux"
       python: 3.7           # this works for Linux but is ignored on macOS or Windows
       dist: xenial          # required for Python >= 3.7
+      before_script:
+        - flake8 readlif
     - name: "Python 3.6.7 on Xenial Linux"
       python: 3.6           # this works for Linux but is ignored on macOS or Windows
       dist: xenial          # required for Python >= 3.7
@@ -25,6 +27,7 @@ matrix:
 install:
   - pip3 install --upgrade pip  # all three OSes agree about 'pip3'
   - pip3 install unittest2
+  - pip3 install flake8
 # 'python' points to Python 2.7 on macOS but points to Python 3.7 on Linux and Windows
 # 'python3' is a 'command not found' error on Windows but 'py' works on Windows only
 script: python3 setup.py test || python setup.py test
