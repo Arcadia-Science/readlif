@@ -38,4 +38,4 @@ The two dimensional images returned by these methods are Pillow objects, so the 
 
 This has only been tested on Lif files that were generated with Leica LAS X and Leica LAS AF. There will likely be files that will not work with this software. In that case, please open an issue on github!
 
-Auto-generated documentation is available here.
+Auto-generated documentation is available [here](https://py-lif.readthedocs.io/en/master/).
