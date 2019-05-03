@@ -1,5 +1,5 @@
-[![Documentation Status](https://readthedocs.org/projects/py-lif/badge/?version=latest)](https://py-lif.readthedocs.io/en/latest/?badge=latest)
-[![Test Status](https://travis-ci.org/nimne/py-lif.svg?branch=master)](https://travis-ci.org/nimne/py-lif)
+[![Documentation Status](https://readthedocs.org/projects/readlif/badge/?version=latest)](https://readlif.readthedocs.io/en/latest/?badge=latest)
+[![Test Status](https://travis-ci.org/nimne/readlif.svg?branch=master)](https://travis-ci.org/nimne/readlif)
 
 readlif README file
 ===
