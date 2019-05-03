@@ -19,7 +19,7 @@ setup(
     author_email="nick.negretti@gmail.com",
     license="MIT",
     classifiers=[
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
     ],
