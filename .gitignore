@@ -1,0 +1,22 @@
+# Ignore build directories
+build/
+dist/
+
+# Ignore Sphinx doc build
+docs/_build/
+
+# Ignore IntelliJ IDEA directory and project files
+.idea
+*.iml
+
+#Ignore these hidden files from Mac OS X
+.DS_Store
+
+#Ignore dir created during install
+readlif.egg-info
+
+#Ignore all compiled python files (e.g. from running the unit tests):
+*.pyc
+*.pyo
+*.py{}
+*.py-e
