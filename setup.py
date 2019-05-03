@@ -1,11 +1,10 @@
-import pathlib
 from setuptools import setup
-
-# The directory containing this file
-HERE = pathlib.Path(__file__).parent
+from os import path
 
 # The text of the README file
-README = (HERE / "README.md").read_text()
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    README = f.read()
 
 # This call to setup() does all the work
 setup(
