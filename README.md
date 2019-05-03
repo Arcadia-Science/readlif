@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/py-lif/badge/?version=latest)](https://py-lif.readthedocs.io/en/latest/?badge=latest)
+
 readlif README file
 ===
 The readlif package was developed to be a fast, python only, reader for Leica Lif files.
