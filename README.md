@@ -4,10 +4,10 @@ The readlif package was developed to be a fast, python only, reader for Leica Li
 
 The basic premise is to read in an image from a Lif file into a Pillow object. The only additional requirement for this package is Pillow>=4.2.0.
 
-This code is inspired by the `Open Microscopy Bio-Formats project <https://github.com/openmicroscopy/bioformats>`_.
+This code is inspired by the [Open Microscopy Bio-Formats project](https://github.com/openmicroscopy/bioformats).
 
 Examples
-===
+==
 Everything in this package is numbered starting from 0, which is not consistent with how things like ImageJ operate.
 
 The basic object is the LifFile object.
