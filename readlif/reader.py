@@ -150,8 +150,8 @@ def _check_magic(handle, bool_return=False):
     else:
         if not bool_return:
             handle.close()
-            raise ValueError("Expected LIF magic byte at " +
-                             str(handle.tell()))
+            raise ValueError("Expected LIF magic byte at "
+                             + str(handle.tell()))
         else:
             return False
 
@@ -162,8 +162,8 @@ def _check_mem(handle, bool_return=False):
         return True
     else:
         if not bool_return:
-            raise ValueError("Expected LIF memory byte at " +
-                             str(handle.tell()))
+            raise ValueError("Expected LIF memory byte at "
+                             + str(handle.tell()))
         else:
             return False
 
