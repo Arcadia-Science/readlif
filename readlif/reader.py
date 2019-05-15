@@ -205,9 +205,9 @@ class LifFile:
         >>> new = LifFile('./path/to/file.lif')
 
         >>> for image in new.get_iter_image():
-            >>> for frame in image.get_iter_t():
-                >>> frame.image_info['name']
-                >>> # do stuff
+        >>>     for frame in image.get_iter_t():
+        >>>         frame.image_info['name']
+        >>>         # do stuff
     """
 
     def _recursive_image_find(self, tree, return_list=None, path=''):
