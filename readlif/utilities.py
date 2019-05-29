@@ -14,7 +14,7 @@ def get_xml(filename):
     Args:
         filename (string): what file to open?
     """
-    f = open(filename, 'rb')
+    f = open(filename, "rb")
     _check_magic(f)  # read 4 byte, check for magic bytes
     f.seek(8)
     _check_mem(f)  # read 1 byte, check for memory byte

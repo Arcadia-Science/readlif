@@ -14,19 +14,22 @@ class LifImage:
         name (str): image name
         info (dict): access to data dict from LifFile
     """
+
     def __init__(self, image_info, offsets, filename):
-        self.dims = (int(image_info['dims'][0]),
-                     int(image_info['dims'][1]),
-                     int(image_info['dims'][2]),
-                     int(image_info['dims'][3]))
-        self.path = image_info['path']
+        self.dims = (
+            int(image_info["dims"][0]),
+            int(image_info["dims"][1]),
+            int(image_info["dims"][2]),
+            int(image_info["dims"][3]),
+        )
+        self.path = image_info["path"]
         self.offsets = offsets
         self.info = image_info
         self.filename = filename
-        self.name = image_info['name']
-        self.channels = image_info['channels']
-        self.nz = int(image_info['dims'][2])
-        self.nt = int(image_info['dims'][3])
+        self.name = image_info["name"]
+        self.channels = image_info["channels"]
+        self.nz = int(image_info["dims"][2])
+        self.nt = int(image_info["dims"][3])
 
     def _get_item(self, n):
         """
@@ -41,14 +44,14 @@ class LifImage:
         # Channels, times z, times t
         seek_distance = self.channels * self.dims[2] * self.dims[3]
         if n >= seek_distance:
-            raise ValueError('Invalid item trying to be retrieved.')
-        with open(self.filename, 'rb') as image:
+            raise ValueError("Invalid item trying to be retrieved.")
+        with open(self.filename, "rb") as image:
             image_len = int(self.offsets[1] / seek_distance)
             # first position is the offset
             image.seek(self.offsets[0] + image_len * n)
             # second position is the length
             data = image.read(image_len)
-            return Image.frombytes('L', (self.dims[0], self.dims[1]), data)
+            return Image.frombytes("L", (self.dims[0], self.dims[1]), data)
 
     def get_frame(self, z=0, t=0, c=0):
         """
@@ -84,7 +87,7 @@ class LifImage:
 
         item_requested = t_requested + z_requested + c_requested
         if item_requested > total_items:
-            raise ValueError('The requested item is after the end of the image')
+            raise ValueError("The requested item is after the end of the image")
 
         return self._get_item(item_requested)
 
@@ -145,25 +148,23 @@ def _read_long(handle):
 
 def _check_magic(handle, bool_return=False):
     """Checks for lif file magic bytes (Private)."""
-    if handle.read(4) == b'\x70\x00\x00\x00':
+    if handle.read(4) == b"\x70\x00\x00\x00":
         return True
     else:
         if not bool_return:
             handle.close()
-            raise ValueError("Expected LIF magic byte at "
-                             + str(handle.tell()))
+            raise ValueError("Expected LIF magic byte at " + str(handle.tell()))
         else:
             return False
 
 
 def _check_mem(handle, bool_return=False):
     """Checks for 'memory block' bytes (Private)."""
-    if handle.read(1) == b'\x2a':
+    if handle.read(1) == b"\x2a":
         return True
     else:
         if not bool_return:
-            raise ValueError("Expected LIF memory byte at "
-                             + str(handle.tell()))
+            raise ValueError("Expected LIF memory byte at " + str(handle.tell()))
         else:
             return False
 
@@ -210,24 +211,25 @@ class LifFile:
         >>>         # do stuff
     """
 
-    def _recursive_image_find(self, tree, return_list=None, path=''):
+    def _recursive_image_find(self, tree, return_list=None, path=""):
         """Creates list of images by parsing the XML header recursively"""
 
         if return_list is None:
             return_list = []
 
-        children = tree.findall('./Children/Element')
+        children = tree.findall("./Children/Element")
         if len(children) < 1:  # Fix for 'first round'
-            children = tree.findall('./Element')
+            children = tree.findall("./Element")
         for item in children:
-            folder_name = item.attrib['Name']
-            if path == '':
+            folder_name = item.attrib["Name"]
+            if path == "":
                 appended_path = folder_name
             else:
-                appended_path = path + '/' + folder_name
-            has_sub_children = len(item.findall('./Children/Element')) > 0
-            is_image = len(item.findall('./Data/Image/ImageDescription/'
-                                        'Dimensions')) > 0
+                appended_path = path + "/" + folder_name
+            has_sub_children = len(item.findall("./Children/Element")) > 0
+            is_image = (
+                len(item.findall("./Data/Image/ImageDescription/Dimensions")) > 0
+            )
 
             if has_sub_children:
                 self._recursive_image_find(item, return_list, appended_path)
@@ -237,41 +239,52 @@ class LifFile:
                 # Todo: get real dims. It's in the Dimension Description as attribute 'Length'
                 # Get number of frames (time points)
                 try:
-                    dim_t = item.find('./Data/Image/ImageDescription/'
-                                      'Dimensions/'
-                                      'DimensionDescription'
-                                      '[@DimID="4"]').attrib['NumberOfElements']
+                    dim_t = item.find(
+                        "./Data/Image/ImageDescription/"
+                        "Dimensions/"
+                        "DimensionDescription"
+                        '[@DimID="4"]'
+                    ).attrib["NumberOfElements"]
                 except AttributeError:
                     dim_t = 1
 
                 # Don't need a try / except block, all images have x and y
-                dim_x = item.find('./Data/Image/ImageDescription/'
-                                  'Dimensions/'
-                                  'DimensionDescription'
-                                  '[@DimID="1"]').attrib['NumberOfElements']
-                dim_y = item.find('./Data/Image/ImageDescription/'
-                                  'Dimensions/'
-                                  'DimensionDescription'
-                                  '[@DimID="2"]').attrib['NumberOfElements']
+                dim_x = item.find(
+                    "./Data/Image/ImageDescription/"
+                    "Dimensions/"
+                    "DimensionDescription"
+                    '[@DimID="1"]'
+                ).attrib["NumberOfElements"]
+                dim_y = item.find(
+                    "./Data/Image/ImageDescription/"
+                    "Dimensions/"
+                    "DimensionDescription"
+                    '[@DimID="2"]'
+                ).attrib["NumberOfElements"]
                 # Try to get z-dimension
                 try:
-                    dim_z = item.find('./Data/Image/ImageDescription/'
-                                      'Dimensions/'
-                                      'DimensionDescription'
-                                      '[@DimID="3"]').attrib['NumberOfElements']
+                    dim_z = item.find(
+                        "./Data/Image/ImageDescription/"
+                        "Dimensions/"
+                        "DimensionDescription"
+                        '[@DimID="3"]'
+                    ).attrib["NumberOfElements"]
                 except AttributeError:
                     dim_z = 1
 
                 # Determine number of channels
-                channel_list = item.findall('./Data/Image/ImageDescription/'
-                                            'Channels/ChannelDescription')
+                channel_list = item.findall(
+                    "./Data/Image/ImageDescription/Channels/ChannelDescription"
+                )
 
                 n_channels = len(channel_list)
 
-                data_dict = {'dims': (dim_x, dim_y, dim_z, dim_t),
-                             'path': str(path + '/'),
-                             'name': item.attrib['Name'],
-                             'channels': n_channels}
+                data_dict = {
+                    "dims": (dim_x, dim_y, dim_z, dim_t),
+                    "path": str(path + "/"),
+                    "name": item.attrib["Name"],
+                    "channels": n_channels,
+                }
 
                 return_list.append(data_dict)
 
@@ -279,7 +292,7 @@ class LifFile:
 
     def __init__(self, filename):
         self.filename = filename
-        f = open(filename, 'rb')
+        f = open(filename, "rb")
         f_len = _get_len(f)
 
         _check_magic(f)  # read 4 byte, check for magic bytes
@@ -318,7 +331,7 @@ class LifFile:
         self.image_list = self._recursive_image_find(self.xml_root)
 
         if len(self.image_list) != len(self.offsets):
-            raise ValueError('Number of images is not equal to number of offsets')
+            raise ValueError("Number of images is not equal to number of offsets")
         else:
             self.num_images = len(self.image_list)
 

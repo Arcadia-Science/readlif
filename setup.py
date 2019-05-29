@@ -3,13 +3,13 @@ from os import path
 
 # The text of the README file
 this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
     README = f.read()
 
 # This call to setup() does all the work
 setup(
     name="readlif",
-    version="0.1.0",
+    version="0.1.1",
     description="Fast Leica LIF file reader written in python",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -25,5 +25,5 @@ setup(
     packages=["readlif"],
     include_package_data=True,
     install_requires=["Pillow>=4.2.0"],
-    test_suite='unittest2.collector'
+    test_suite="unittest2.collector",
 )
