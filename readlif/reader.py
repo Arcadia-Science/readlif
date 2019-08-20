@@ -10,9 +10,19 @@ class LifImage:
 
     Attributes:
         path (str): path / name of the image
-        dims: (x, y, z, t)
+        dims (tuple): (x, y, z, t)
         name (str): image name
-        info (dict): access to data dict from LifFile
+        offsets (list): Byte position offsets for each image.
+        filename (str): The name of the LIF file being read
+        channels (int): Number of channels in the image
+        nz (int): number of 'z' frames
+        nt (int): number of 't' frames
+        scale (tuple): (scale_x, scale_y, scale_z, scale_t).
+            Conversion factor: px/nm for x, y and z; sec/image for t.
+        info (dict): Direct access to data dict from LifFile, this is most
+            useful for debugging. These are values pulled from the Leica XML.
+
+
     """
 
     def __init__(self, image_info, offsets, filename):
@@ -30,6 +40,7 @@ class LifImage:
         self.channels = image_info["channels"]
         self.nz = int(image_info["dims"][2])
         self.nt = int(image_info["dims"][3])
+        self.scale = image_info["scale"]  # likely: image_info["scale"]
 
     def _get_item(self, n):
         """
@@ -94,9 +105,11 @@ class LifImage:
     def get_iter_t(self, z=0, c=0):
         """
         Returns an iterator over time t at position z and channel c.
+
         Args:
             z (int): z position
             c (int): channel
+
         Returns:
             Iterator of Pillow Image objects
         """
@@ -110,9 +123,11 @@ class LifImage:
     def get_iter_c(self, z=0, t=0):
         """
         Returns an iterator over the channels at time t and position z.
+
         Args:
             z (int): z position
             t (int): time point
+
         Returns:
             Iterator of Pillow Image objects
         """
@@ -126,9 +141,11 @@ class LifImage:
     def get_iter_z(self, t=0, c=0):
         """
         Returns an iterator over the z series of time t and channel c.
+
         Args:
             t (int): time point
             c (int): channel
+
         Returns:
             Iterator of Pillow Image objects
         """
@@ -279,11 +296,51 @@ class LifFile:
 
                 n_channels = len(channel_list)
 
+                # Find the scale of the image. All images have x and y,
+                # only some have z and t.
+                len_x = item.find(
+                    "./Data/Image/ImageDescription/"
+                    "Dimensions/"
+                    "DimensionDescription"
+                    '[@DimID="1"]'
+                ).attrib["Length"]  # Returns len in meters
+                scale_x = (int(dim_x) - 1) / (float(len_x) * 10**6)
+                len_y = item.find(
+                    "./Data/Image/ImageDescription/"
+                    "Dimensions/"
+                    "DimensionDescription"
+                    '[@DimID="2"]'
+                ).attrib["Length"]  # Returns len in meters
+                scale_y = (int(dim_y) - 1) / (float(len_y) * 10**6)
+                # Try to get z-dimension
+                try:
+                    len_z = item.find(
+                        "./Data/Image/ImageDescription/"
+                        "Dimensions/"
+                        "DimensionDescription"
+                        '[@DimID="3"]'
+                    ).attrib["Length"]  # Returns len in meters
+                    scale_z = int(dim_z) / (float(len_z) * 10**6)
+                except AttributeError:
+                    scale_z = None
+
+                try:
+                    len_t = item.find(
+                        "./Data/Image/ImageDescription/"
+                        "Dimensions/"
+                        "DimensionDescription"
+                        '[@DimID="4"]'
+                    ).attrib["Length"]  # Returns len in meters
+                    scale_t = int(dim_t) / float(len_t)
+                except AttributeError:
+                    scale_t = None
+
                 data_dict = {
                     "dims": (dim_x, dim_y, dim_z, dim_t),
                     "path": str(path + "/"),
                     "name": item.attrib["Name"],
                     "channels": n_channels,
+                    "scale": (scale_x, scale_y, scale_z, scale_t),
                 }
 
                 return_list.append(data_dict)

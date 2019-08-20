@@ -40,3 +40,12 @@ The two dimensional images returned by these methods are Pillow objects, so the 
 This has only been tested on Lif files that were generated with Leica LAS X and Leica LAS AF. There will likely be files that will not work with this software. In that case, please open an issue on github!
 
 Auto-generated documentation is available [here](https://readlif.readthedocs.io/en/latest/).
+
+Changelog
+======
+0.2.0 - `LifImage.scale` now returns px/nm conversions
+
+0.1.1 - Style changes
+
+0.1.0 - Initial release
+
