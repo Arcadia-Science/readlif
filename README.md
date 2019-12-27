@@ -43,6 +43,8 @@ Auto-generated documentation is available [here](https://readlif.readthedocs.io/
 
 Changelog
 ======
+0.2.1 - Fixed `ZeroDivisionError` when the Z-dimension is defined, but has a length of 0. Clarified an error message. Added fix for truncated files.
+
 0.2.0 - `LifImage.scale` now returns px/nm conversions
 
 0.1.1 - Style changes

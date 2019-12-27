@@ -1,6 +1,7 @@
 import struct
 import xml.etree.ElementTree as ET
 from PIL import Image
+import warnings
 
 
 class LifImage:
@@ -52,16 +53,30 @@ class LifImage:
             PIL image
         """
         n = int(n)
-        # Channels, times z, times t
+        # Channels, times z, times t.
+        # This is the number of 'images' in the block.
         seek_distance = self.channels * self.dims[2] * self.dims[3]
         if n >= seek_distance:
             raise ValueError("Invalid item trying to be retrieved.")
         with open(self.filename, "rb") as image:
-            image_len = int(self.offsets[1] / seek_distance)
-            # first position is the offset
+
+            # self.offsets[1] is the length of the image
+            if self.offsets[1] == 0:
+                # In the case of a blank image, we can calculate the length from
+                # the metadata in the LIF. When this is read by the parser,
+                # it is set to zero initially.
+                image_len = seek_distance * self.dims[0] * self.dims[1]
+            else:
+                image_len = int(self.offsets[1] / seek_distance)
+
+            # self.offsets[0] is the offset in the file
             image.seek(self.offsets[0] + image_len * n)
-            # second position is the length
-            data = image.read(image_len)
+
+            # It is not necessary to read from disk for truncated files
+            if self.offsets[1] == 0:
+                data = b"\00" * image_len
+            else:
+                data = image.read(image_len)
             return Image.frombytes("L", (self.dims[0], self.dims[1]), data)
 
     def get_frame(self, z=0, t=0, c=0):
@@ -163,14 +178,24 @@ def _read_long(handle):
     return long_data
 
 
+def _check_truncated(handle):
+    """Checks if the LIF file is truncated by reading in 100 bytes."""
+    handle.seek(-4, 1)
+    if handle.read(100) == (b"\x00" * 100):
+        handle.seek(-100, 1)
+        return True
+    handle.seek(-100, 1)
+    return False
+
+
 def _check_magic(handle, bool_return=False):
     """Checks for lif file magic bytes (Private)."""
     if handle.read(4) == b"\x70\x00\x00\x00":
         return True
     else:
         if not bool_return:
-            handle.close()
-            raise ValueError("Expected LIF magic byte at " + str(handle.tell()))
+            raise ValueError("This is probably not a LIF file. "
+                             "Expected LIF magic byte at " + str(handle.tell()))
         else:
             return False
 
@@ -253,7 +278,6 @@ class LifFile:
 
             elif is_image:
                 # If additional XML data extraction is needed, add it here.
-                # Todo: get real dims. It's in the Dimension Description as attribute 'Length'
                 # Get number of frames (time points)
                 try:
                     dim_t = item.find(
@@ -321,7 +345,7 @@ class LifFile:
                         '[@DimID="3"]'
                     ).attrib["Length"]  # Returns len in meters
                     scale_z = int(dim_z) / (float(len_z) * 10**6)
-                except AttributeError:
+                except (AttributeError, ZeroDivisionError):
                     scale_z = None
 
                 try:
@@ -332,7 +356,7 @@ class LifFile:
                         '[@DimID="4"]'
                     ).attrib["Length"]  # Returns len in meters
                     scale_t = int(dim_t) / float(len_t)
-                except AttributeError:
+                except (AttributeError, ZeroDivisionError):
                     scale_t = None
 
                 data_dict = {
@@ -361,34 +385,60 @@ class LifFile:
         self.xml_root = ET.fromstring(self.xml_header)
 
         self.offsets = []
+        truncated = False
         while f.tell() < f_len:
-            # To find offsets, read magic byte
-            _check_magic(f)  # read 4 byte, check for magic bytes
-            f.seek(4, 1)
-            _check_mem(f)  # read 1 byte, check for memory byte
+            try:
+                # To find offsets, read magic byte
+                _check_magic(f)  # read 4 byte, check for magic bytes
+                f.seek(4, 1)
+                _check_mem(f)  # read 1 byte, check for memory byte
 
-            block_len = _read_int(f)
+                block_len = _read_int(f)
 
-            # Not sure if this works, as I don't have a file to test it on
-            # This is based on the OpenMicroscopy LIF reader written in in java
-            if not _check_mem(f, True):
-                f.seek(-5, 1)
-                block_len = _read_long(f)
-                _check_mem(f)
+                # Not sure if this works, as I don't have a file to test it on
+                # This is based on the OpenMicroscopy LIF reader written in in java
+                if not _check_mem(f, True):
+                    f.seek(-5, 1)
+                    block_len = _read_long(f)
+                    _check_mem(f)
 
-            description_len = _read_int(f) * 2
+                description_len = _read_int(f) * 2
 
-            if block_len > 0:
-                self.offsets.append((f.tell() + description_len, block_len))
+                if block_len > 0:
+                    self.offsets.append((f.tell() + description_len, block_len))
 
-            f.seek(description_len + block_len, 1)
+                f.seek(description_len + block_len, 1)
+
+            except ValueError:
+                if _check_truncated(f):
+                    truncation_begin = f.tell()
+                    warnings.warn("LIF file is likely truncated. Be advised, "
+                                  "it appears that some images are blank. ",
+                                  UserWarning)
+                    truncated = True
+                    f.seek(0, 2)
+
+                else:
+                    raise
 
         f.close()
 
         self.image_list = self._recursive_image_find(self.xml_root)
 
-        if len(self.image_list) != len(self.offsets):
-            raise ValueError("Number of images is not equal to number of offsets")
+        # If the image is truncated we need to manually add the offsets because
+        # the LIF magic bytes aren't present to guide the location.
+        if truncated:
+            num_truncated = len(self.image_list) - len(self.offsets)
+            for i in range(num_truncated):
+                # In the special case of a truncation,
+                # append an offset with length zero.
+                # This will be taken care of later when the images are retrieved.
+                self.offsets.append((truncation_begin, 0))
+
+        if len(self.image_list) != len(self.offsets) and not truncated:
+            raise ValueError("Number of images is not equal to number of "
+                             "offsets, and this file does not appear to "
+                             "be truncated. Something has gone wrong.")
         else:
             self.num_images = len(self.image_list)
 
