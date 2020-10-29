@@ -20,6 +20,8 @@ class LifImage:
         nt (int): number of 't' frames
         scale (tuple): (scale_x, scale_y, scale_z, scale_t).
             Conversion factor: px/nm for x, y and z; sec/image for t.
+        bit_depth (tuple): A tuple of ints that indicates the bit depth of
+            each channel in the image.
         info (dict): Direct access to data dict from LifFile, this is most
             useful for debugging. These are values pulled from the Leica XML.
 
