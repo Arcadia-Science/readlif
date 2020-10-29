@@ -2,11 +2,11 @@ language: python            # this works for Linux but is an error on macOS or W
 matrix:
   include:
     - name: "Python 3.9 on Xenial Linux"
-        python: 3.9         # this works for Linux but is ignored on macOS or Windows
-        dist: xenial
-        env:
-          - TOXENV=py39
-          - RELEASE=yes
+      python: 3.9         # this works for Linux but is ignored on macOS or Windows
+      dist: xenial
+      env:
+        - TOXENV=py39
+        - RELEASE=yes
     - name: "Python 3.8 on Xenial Linux"
       python: 3.8         # this works for Linux but is ignored on macOS or Windows
       dist: xenial
