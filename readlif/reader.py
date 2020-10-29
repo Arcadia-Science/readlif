@@ -20,6 +20,8 @@ class LifImage:
         nt (int): number of 't' frames
         scale (tuple): (scale_x, scale_y, scale_z, scale_t).
             Conversion factor: px/nm for x, y and z; sec/image for t.
+        bit_depth (tuple): A tuple of ints that indicates the bit depth of
+            each channel in the image.
         info (dict): Direct access to data dict from LifFile, this is most
             useful for debugging. These are values pulled from the Leica XML.
 
@@ -41,7 +43,8 @@ class LifImage:
         self.channels = image_info["channels"]
         self.nz = int(image_info["dims"][2])
         self.nt = int(image_info["dims"][3])
-        self.scale = image_info["scale"]  # likely: image_info["scale"]
+        self.scale = image_info["scale"]
+        self.bit_depth = image_info["bit_depth"]
 
     def _get_item(self, n):
         """
@@ -77,7 +80,23 @@ class LifImage:
                 data = b"\00" * image_len
             else:
                 data = image.read(image_len)
-            return Image.frombytes("L", (self.dims[0], self.dims[1]), data)
+
+            # LIF files can be either 8-bit of 16-bit.
+            # Because of how the image is read in, all of the raw
+            # data is already in 'data', we just need to tell Pillow
+            # how to set the bit depth
+            # 'L' is 8-bit, 'I;16' is 16 bit
+
+            # len(data) is the number of bytes (8-bit)
+            if len(data) == self.dims[0] * self.dims[1]:
+                return Image.frombytes("L",
+                                       (self.dims[0], self.dims[1]), data)
+            elif (len(data) / 2) == self.dims[0] * self.dims[1]:
+                return Image.frombytes("I;16",
+                                       (self.dims[0], self.dims[1]), data)
+            else:
+                raise ValueError("Unknown bit-depth, please submit a bug report"
+                                 " on Github")
 
     def get_frame(self, z=0, t=0, c=0):
         """
@@ -280,36 +299,36 @@ class LifFile:
                 # If additional XML data extraction is needed, add it here.
                 # Get number of frames (time points)
                 try:
-                    dim_t = item.find(
+                    dim_t = int(item.find(
                         "./Data/Image/ImageDescription/"
                         "Dimensions/"
                         "DimensionDescription"
                         '[@DimID="4"]'
-                    ).attrib["NumberOfElements"]
+                    ).attrib["NumberOfElements"])
                 except AttributeError:
                     dim_t = 1
 
                 # Don't need a try / except block, all images have x and y
-                dim_x = item.find(
+                dim_x = int(item.find(
                     "./Data/Image/ImageDescription/"
                     "Dimensions/"
                     "DimensionDescription"
                     '[@DimID="1"]'
-                ).attrib["NumberOfElements"]
-                dim_y = item.find(
+                ).attrib["NumberOfElements"])
+                dim_y = int(item.find(
                     "./Data/Image/ImageDescription/"
                     "Dimensions/"
                     "DimensionDescription"
                     '[@DimID="2"]'
-                ).attrib["NumberOfElements"]
+                ).attrib["NumberOfElements"])
                 # Try to get z-dimension
                 try:
-                    dim_z = item.find(
+                    dim_z = int(item.find(
                         "./Data/Image/ImageDescription/"
                         "Dimensions/"
                         "DimensionDescription"
                         '[@DimID="3"]'
-                    ).attrib["NumberOfElements"]
+                    ).attrib["NumberOfElements"])
                 except AttributeError:
                     dim_z = 1
 
@@ -318,24 +337,37 @@ class LifFile:
                     "./Data/Image/ImageDescription/Channels/ChannelDescription"
                 )
 
-                n_channels = len(channel_list)
+                n_channels = int(len(channel_list))
+
+                # Iterate over each channel, get the resolution
+                bit_depth = tuple([int(c.attrib["Resolution"]) for
+                                   c in channel_list])
 
                 # Find the scale of the image. All images have x and y,
                 # only some have z and t.
-                len_x = item.find(
-                    "./Data/Image/ImageDescription/"
-                    "Dimensions/"
-                    "DimensionDescription"
-                    '[@DimID="1"]'
-                ).attrib["Length"]  # Returns len in meters
-                scale_x = (int(dim_x) - 1) / (float(len_x) * 10**6)
-                len_y = item.find(
-                    "./Data/Image/ImageDescription/"
-                    "Dimensions/"
-                    "DimensionDescription"
-                    '[@DimID="2"]'
-                ).attrib["Length"]  # Returns len in meters
-                scale_y = (int(dim_y) - 1) / (float(len_y) * 10**6)
+                # It is plausible that 'Length' is not defined - use try/except.
+                try:
+                    len_x = item.find(
+                        "./Data/Image/ImageDescription/"
+                        "Dimensions/"
+                        "DimensionDescription"
+                        '[@DimID="1"]'
+                    ).attrib["Length"]  # Returns len in meters
+                    scale_x = (int(dim_x) - 1) / (float(len_x) * 10**6)
+                except (AttributeError, ZeroDivisionError):
+                    scale_x = None
+
+                try:
+                    len_y = item.find(
+                        "./Data/Image/ImageDescription/"
+                        "Dimensions/"
+                        "DimensionDescription"
+                        '[@DimID="2"]'
+                    ).attrib["Length"]  # Returns len in meters
+                    scale_y = (int(dim_y) - 1) / (float(len_y) * 10**6)
+                except (AttributeError, ZeroDivisionError):
+                    scale_y = None
+
                 # Try to get z-dimension
                 try:
                     len_z = item.find(
@@ -365,6 +397,7 @@ class LifFile:
                     "name": item.attrib["Name"],
                     "channels": n_channels,
                     "scale": (scale_x, scale_y, scale_z, scale_t),
+                    "bit_depth": bit_depth
                 }
 
                 return_list.append(data_dict)

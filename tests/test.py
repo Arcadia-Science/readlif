@@ -65,6 +65,10 @@ class TestReadMethods(unittest.TestCase):
         obj = LifFile("./tests/xyzt_test.lif").get_image(0)
         self.assertAlmostEqual(obj.scale[0], 9.8709062997224)
 
+    def test_depth(self):
+        obj = LifFile("./tests/xyzt_test.lif").get_image(0)
+        self.assertEqual(obj.bit_depth[0], 8)
+
 
 if __name__ == "__main__":
     unittest.main()
