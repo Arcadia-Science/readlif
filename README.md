@@ -9,8 +9,7 @@ The basic premise is to read an image from a Lif file into a Pillow object. The 
 
 This code is inspired by the [Open Microscopy Bio-Formats project](https://github.com/openmicroscopy/bioformats).
 
-API documentation [here](https://readlif.readthedocs.io/en/latest/).
-
+Auto-generated documentation is available [here](https://readlif.readthedocs.io/en/latest/).
 Installation
 ===
 This package is available on pypi, so you can install it with pip
@@ -31,8 +30,7 @@ actually 10 or 12 bit images. It is not simple to easily convert these without
 the potential of losing data, so a an new `bit_depth` attribute has been added
 to `LifImage` to indicate the bit depth of each channel in the image.
 
-It is up to the user to decide how, or if, to convert these.
-
+It is up to the user to decide how, or if, to convert these. There is an upscaling example below.
 
 Examples
 ===
@@ -62,9 +60,20 @@ channel_list = [i for i in img_0.get_iter_c(t=0, z=0)]
 ```
 The two dimensional images returned by these methods are Pillow objects, so the applicable methods (`.show()`) will work with them.
 
+If it is necessary to scale a 12-bit image to the full 16-bit range, it is possible to do this with numpy.
+```python
+import numpy as np
+
+# Assumes all channels have the same bit depth
+scale_factor = (16 - img_0.bit_depth[0]) ** 2  
+frame = img_0.get_frame(z=0, t=0, c=0)
+img_array = np.uint16(np.array(frame) * scale_factor)
+
+Image.fromarray(img_array).show()
+```
+
 This has only been tested on Lif files that were generated with Leica LAS X and Leica LAS AF. There will likely be files that will not work with this software. In that case, please open an issue on github!
 
-Auto-generated documentation is available [here](https://readlif.readthedocs.io/en/latest/).
 
 Changelog
 ======
