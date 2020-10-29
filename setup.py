@@ -9,7 +9,7 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
 # This call to setup() does all the work
 setup(
     name="readlif",
-    version="0.2.1-dev",
+    version="0.3.0-dev",
     description="Fast Leica LIF file reader written in python",
     long_description=README,
     long_description_content_type="text/markdown",

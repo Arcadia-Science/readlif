@@ -20,3 +20,6 @@ readlif.egg-info
 *.pyo
 *.py{}
 *.py-e
+
+#Ignore testing files
+ignore.py

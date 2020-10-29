@@ -9,6 +9,8 @@ The basic premise is to read an image from a Lif file into a Pillow object. The 
 
 This code is inspired by the [Open Microscopy Bio-Formats project](https://github.com/openmicroscopy/bioformats).
 
+API documentation [here](https://readlif.readthedocs.io/en/latest/).
+
 Installation
 ===
 This package is available on pypi, so you can install it with pip
@@ -19,6 +21,18 @@ Alternatively, clone the git repo and install with setuptools
 ```
 python setup.py install
 ```
+
+12- and 16-bit images
+===
+As of 0.3.0, `reaflif` will now support images with bit depth greater than 8.
+
+However, note that while some images will be returned as a 16 bit array, they are
+actually 10 or 12 bit images. It is not simple to easily convert these without
+the potential of losing data, so a an new `bit_depth` attribute has been added
+to `LifImage` to indicate the bit depth of each channel in the image.
+
+It is up to the user to decide how, or if, to convert these.
+
 
 Examples
 ===
@@ -54,11 +68,22 @@ Auto-generated documentation is available [here](https://readlif.readthedocs.io/
 
 Changelog
 ======
-0.2.1 - Fixed `ZeroDivisionError` when the Z-dimension is defined, but has a length of 0. Clarified an error message. Added fix for truncated files.
+#### 0.3.0
+- Added support for 16-bit images, increased minimum Pillow version to 7.2.0.
+    - New `LifImage` attribute `bit_depth` is a tuple of intigers descibing the bit
+    depth for each channel in the image. 
+- Changed type from `str` to `int` for `dims` and `channels` in the `info` dictionary
+- Added python 3.9 to build testing
 
-0.2.0 - `LifImage.scale` now returns px/nm conversions
+#### 0.2.1 
+- Fixed `ZeroDivisionError` when the Z-dimension is defined, but has a length of 0. Clarified an error message. Added fix for truncated files.
 
-0.1.1 - Style changes
+#### 0.2.0 
+- `LifImage.scale` now returns px/nm conversions
 
-0.1.0 - Initial release
+#### 0.1.1 
+- Style changes
+
+#### 0.1.0 
+- Initial release
 
