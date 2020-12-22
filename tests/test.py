@@ -3,6 +3,7 @@ from readlif.reader import LifFile
 from readlif.utilities import get_xml
 from PIL import Image
 
+
 class TestReadMethods(unittest.TestCase):
     def test_image_loading(self):
         # order = c, z, t
@@ -70,9 +71,8 @@ class TestReadMethods(unittest.TestCase):
 
     def test_not_implemented_mosaic(self):
         import os
-        istravis = os.environ.get('TRAVIS') == 'true'
         # Can't test this in CI, don't have permission to publish this
-        if not istravis:
+        if os.path.exists("./tests/private/tile_002.lif"):
             with self.assertRaises(NotImplementedError):
                 LifFile("./tests/private/tile_002.lif").get_image(0)
         pass
