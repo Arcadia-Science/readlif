@@ -2,9 +2,6 @@ import unittest
 from readlif.reader import LifFile
 from readlif.utilities import get_xml
 from PIL import Image
-import os
-istravis = os.environ.get('TRAVIS') == 'true'
-
 
 class TestReadMethods(unittest.TestCase):
     def test_image_loading(self):
@@ -72,6 +69,8 @@ class TestReadMethods(unittest.TestCase):
         self.assertEqual(obj.bit_depth[0], 8)
 
     def test_not_implemented_mosaic(self):
+        import os
+        istravis = os.environ.get('TRAVIS') == 'true'
         # Can't test this in CI, don't have permission to publish this
         if not istravis:
             with self.assertRaises(NotImplementedError):
