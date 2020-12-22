@@ -404,7 +404,7 @@ class LifFile:
                     if len_m is not None:
                         raise NotImplementedError("readlif doesn't support "
                                                   "mosaic / tiled images yet! "
-                                                  "Please check the readlif"
+                                                  "Please check the readlif "
                                                   "github for progress.")
                 except AttributeError:
                     pass
