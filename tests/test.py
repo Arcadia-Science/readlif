@@ -69,6 +69,14 @@ class TestReadMethods(unittest.TestCase):
         obj = LifFile("./tests/xyzt_test.lif").get_image(0)
         self.assertEqual(obj.bit_depth[0], 8)
 
+    def test_not_implemented_mosaic(self):
+        import os
+        # Can't test this in CI, don't have permission to publish this
+        if os.path.exists("./tests/private/tile_002.lif"):
+            with self.assertRaises(NotImplementedError):
+                LifFile("./tests/private/tile_002.lif").get_image(0)
+        pass
+
 
 if __name__ == "__main__":
     unittest.main()

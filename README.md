@@ -22,6 +22,16 @@ Alternatively, clone the git repo and install with setuptools
 python setup.py install
 ```
 
+Known issues
+===
+This package is not yet updated to support tiled / mosaic LIF files. Version 0.3.1 should
+now give an error message when attempting to load a mosaic image. See Issue #7.
+
+There may also be an issue where a truncated 16-bit file will load incorrectly, however
+this is not tested.
+
+There is not yet support for FlipX, FlipY and SwapXY metadata.
+
 12- and 16-bit images
 ===
 As of 0.3.0, `reaflif` will now support images with bit depth greater than 8.
@@ -78,6 +88,9 @@ This has only been tested on Lif files that were generated with Leica LAS X and 
 
 Changelog
 ======
+#### 0.3.1
+- Added error message for tiled images, pending feature addition
+
 #### 0.3.0
 - Added support for 16-bit images, increased minimum Pillow version to 7.2.0.
     - New `LifImage` attribute `bit_depth` is a tuple of intigers descibing the bit

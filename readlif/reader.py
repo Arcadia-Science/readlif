@@ -76,6 +76,7 @@ class LifImage:
             image.seek(self.offsets[0] + image_len * n)
 
             # It is not necessary to read from disk for truncated files
+            # Todo: Update this for 16-bit images
             if self.offsets[1] == 0:
                 data = b"\00" * image_len
             else:
@@ -390,6 +391,23 @@ class LifFile:
                     scale_t = int(dim_t) / float(len_t)
                 except (AttributeError, ZeroDivisionError):
                     scale_t = None
+
+                # Adding error when tyring to read mosaic files, this is
+                # placeholder code until the feature can be implemented
+                try:
+                    len_m = item.find(
+                        "./Data/Image/ImageDescription/"
+                        "Dimensions/"
+                        "DimensionDescription"
+                        '[@DimID="10"]'
+                    ).attrib["NumberOfElements"]
+                    if len_m is not None:
+                        raise NotImplementedError("readlif doesn't support "
+                                                  "mosaic / tiled images yet! "
+                                                  "Please check the readlif "
+                                                  "github for progress.")
+                except AttributeError:
+                    pass
 
                 data_dict = {
                     "dims": (dim_x, dim_y, dim_z, dim_t),
