@@ -449,10 +449,10 @@ class LifFile:
                 m_pos_list = []
                 if dim_m > 1:
                     for tile in item.findall("./Data/Image/Attachment/Tile"):
-                        FieldX = tile.attrib["FieldX"]
-                        FieldY = tile.attrib["FieldY"]
-                        PosX = tile.attrib["PosY"]
-                        PosY = tile.attrib["PosY"]
+                        FieldX = int(tile.attrib["FieldX"])
+                        FieldY = int(tile.attrib["FieldY"])
+                        PosX = float(tile.attrib["PosY"])
+                        PosY = float(tile.attrib["PosY"])
 
                         m_pos_list.append((FieldX, FieldY, PosX, PosY))
 
