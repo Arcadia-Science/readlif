@@ -88,6 +88,12 @@ This has only been tested on Lif files that were generated with Leica LAS X and 
 
 Changelog
 ======
+#### 0.4.0
+- Added support for tiled images
+    - `m` was added as a new dimension (for tiled images)
+    - New commands:
+        - `asf`
+
 #### 0.3.1
 - Added error message for tiled images, pending feature addition
 
