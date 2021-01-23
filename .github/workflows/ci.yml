@@ -1,5 +1,4 @@
 name: CI-Tests
-environment: pypi
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
