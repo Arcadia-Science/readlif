@@ -49,11 +49,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install tox tox-gh-actions
       - name: Test with tox
-        env: ${{ pypi.READLIF_TEST_DL_PASSWD }}
+        env: ${{ secrets.READLIF_TEST_DL_PASSWD }}
         run: tox
       - name: Publish package
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@v1.4.1
         with:
           user: __token__
-          password: ${{ pypi.PYPI_API_TOKEN }}
+          password: ${{ secrets.PYPI_API_TOKEN }}
