@@ -33,25 +33,22 @@ class LifImage:
     """
 
     def __init__(self, image_info, offsets, filename):
-        self.dims = (
-            int(image_info["dims"].dim_x),
-            int(image_info["dims"].dim_y),
-            int(image_info["dims"].dim_z),
-            int(image_info["dims"].dim_t),
-            int(image_info["dims"].dim_m)
-        )
+        self.dims = image_info["dims"]  # Named tuple (x, y, z, t, m)
         self.path = image_info["path"]
         self.offsets = offsets
         self.info = image_info
         self.filename = filename
         self.name = image_info["name"]
         self.channels = image_info["channels"]
-        self.nz = int(image_info["dims"].dim_z)
-        self.nt = int(image_info["dims"].dim_t)
+        self.nz = int(image_info["dims"].z)
+        self.nt = int(image_info["dims"].t)
         self.scale = image_info["scale"]
         self.bit_depth = image_info["bit_depth"]
         self.mosaic_position = image_info["mosaic_position"]
-        self.n_mosaic = int(image_info["dims"].dim_m)
+        self.n_mosaic = int(image_info["dims"].m)
+
+    def __repr__(self):
+        return repr('LifImage object with dimensions: ' + str(self.dims))
 
     def _get_item(self, n):
         """
@@ -65,8 +62,8 @@ class LifImage:
         n = int(n)
         # Channels, times z, times t.
         # This is the number of 'images' in the block.
-        seek_distance = (self.channels * self.dims[2]
-                         * self.dims[3] * self.dims[4])
+        seek_distance = (self.channels * self.dims.z
+                         * self.dims.t * self.dims.m)
         if n >= seek_distance:
             raise ValueError("Invalid item trying to be retrieved.")
         with open(self.filename, "rb") as image:
@@ -76,7 +73,7 @@ class LifImage:
                 # In the case of a blank image, we can calculate the length from
                 # the metadata in the LIF. When this is read by the parser,
                 # it is set to zero initially.
-                image_len = seek_distance * self.dims[0] * self.dims[1]
+                image_len = seek_distance * self.dims.x * self.dims.y
             else:
                 image_len = int(self.offsets[1] / seek_distance)
 
@@ -84,7 +81,7 @@ class LifImage:
             image.seek(self.offsets[0] + image_len * n)
 
             # It is not necessary to read from disk for truncated files
-            # Todo: Update this for 16-bit images
+            # Todo: Update this for 16-bit images if there is a test file
             if self.offsets[1] == 0:
                 data = b"\00" * image_len
             else:
@@ -100,10 +97,10 @@ class LifImage:
             # However, it is safer to let the lif file tell us the resolution
             if self.bit_depth[0] == 8:
                 return Image.frombytes("L",
-                                       (self.dims[0], self.dims[1]), data)
+                                       (self.dims.x, self.dims.y), data)
             elif self.bit_depth[0] <= 16:
                 return Image.frombytes("I;16",
-                                       (self.dims[0], self.dims[1]), data)
+                                       (self.dims.x, self.dims.y), data)
             else:
                 raise ValueError("Unknown bit-depth, please submit a bug report"
                                  " on Github")
@@ -228,7 +225,7 @@ class LifImage:
         t = int(t)
         c = int(c)
         m = 0
-        while z < self.nz:
+        while m < self.n_mosaic:
             yield self.get_frame(z=z, t=t, c=c, m=m)
             m += 1
 
@@ -255,6 +252,7 @@ def _check_magic(handle, bool_return=False):
         return True
     else:
         if not bool_return:
+            handle.close()
             raise ValueError("This is probably not a LIF file. "
                              "Expected LIF magic byte at " + str(handle.tell()))
         else:
@@ -456,7 +454,7 @@ class LifFile:
 
                         m_pos_list.append((FieldX, FieldY, PosX, PosY))
 
-                Dims = namedtuple("Dims", "dim_x dim_y dim_z dim_t dim_m")
+                Dims = namedtuple("Dims", "x y z t m")
 
                 data_dict = {
                     "dims": Dims(dim_x, dim_y, dim_z, dim_t, dim_m),
@@ -542,6 +540,14 @@ class LifFile:
                              "be truncated. Something has gone wrong.")
         else:
             self.num_images = len(self.image_list)
+
+    def __repr__(self):
+        if self.num_images == 1:
+            return repr('LifFile object with ' + str(self.num_images)
+                        + ' image')
+        else:
+            return repr('LifFile object with ' + str(self.num_images)
+                        + ' images')
 
     def get_image(self, img_n=0):
         """

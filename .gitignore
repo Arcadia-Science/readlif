@@ -24,6 +24,8 @@ readlif.egg-info
 #Ignore testing files
 ignore.py
 .tox
+.coverage
+htmlcov
 
 #Ignore testing files that I don't have permission to share
 tests/private/*

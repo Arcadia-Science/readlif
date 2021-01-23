@@ -1,5 +1,5 @@
 [![Documentation Status](https://readthedocs.org/projects/readlif/badge/?version=latest)](https://readlif.readthedocs.io/en/latest/?badge=latest)
-[![Test Status](https://travis-ci.com/nimne/readlif.svg?branch=master)](https://travis-ci.com/github/nimne/readlif)
+[![Test Status](https://github.com/nimne/readlif/workflows/CI-Tests/)](https://github.com/nimne/readlif/workflows/CI-Tests/badge.svg)
 
 readlif README file
 ===
@@ -24,13 +24,11 @@ python setup.py install
 
 Known issues
 ===
-This package is not yet updated to support tiled / mosaic LIF files. Version 0.3.1 should
-now give an error message when attempting to load a mosaic image. See Issue #7.
+There may be an issue where a truncated 16-bit file will load incorrectly, however
+this is not tested. If you have an example file, open an issue!
 
-There may also be an issue where a truncated 16-bit file will load incorrectly, however
-this is not tested.
-
-There is not yet support for FlipX, FlipY and SwapXY metadata.
+There is not support for FlipX, FlipY and SwapXY metadata. If you need this, 
+please open an issue!
 
 12- and 16-bit images
 ===
@@ -91,8 +89,14 @@ Changelog
 #### 0.4.0
 - Added support for tiled images
     - `m` was added as a new dimension (for tiled images)
-    - New commands:
-        - `asf`
+    - `LifImage` changes:
+        - New `get_iter_m()` function
+        - New `mosaic_position` attribute with `(FieldX, FieldY, PosX, PosY)`
+- Under the hood changes
+    - `LifImage.dims` is now a named tuple for clearer code
+- Other things
+    - Prettier outputs for `repr()`
+    - Switch to github CI
 
 #### 0.3.1
 - Added error message for tiled images, pending feature addition
