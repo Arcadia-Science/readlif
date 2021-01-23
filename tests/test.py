@@ -9,7 +9,11 @@ from PIL import Image
 
 def downloadPrivateFile(filename):
     import requests
-    pwd = os.environ.get('READLIF_TEST_DL_PASSWD')
+    pwd = os.environ.get('READLIF_TEST_DL_PASSWD').strip()
+
+    # Sanity check the password here..
+    if not pwd.startswith("mUZD6"):
+        raise ValueError("Password env var isn't right")
 
     dl_url = "https://cdn.nimne.com/readlif/" + str(filename)
     if not os.path.exists("./tests/private/" + filename):
