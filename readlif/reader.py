@@ -1,6 +1,7 @@
 import struct
 import xml.etree.ElementTree as ET
 from PIL import Image
+from collections import namedtuple
 import warnings
 
 
@@ -11,7 +12,7 @@ class LifImage:
 
     Attributes:
         path (str): path / name of the image
-        dims (tuple): (x, y, z, t)
+        dims (tuple): (x, y, z, t, m)
         name (str): image name
         offsets (list): Byte position offsets for each image.
         filename (str): The name of the LIF file being read
@@ -22,6 +23,9 @@ class LifImage:
             Conversion factor: px/nm for x, y and z; sec/image for t.
         bit_depth (tuple): A tuple of ints that indicates the bit depth of
             each channel in the image.
+        mosaic_position (list): If the image is a mosaic (tiled), this contains
+            a list of tuples with four values: `(FieldX, FieldY, PosX, PosY)`.
+            The length of this list is equal to the number of tiles.
         info (dict): Direct access to data dict from LifFile, this is most
             useful for debugging. These are values pulled from the Leica XML.
 
@@ -29,22 +33,22 @@ class LifImage:
     """
 
     def __init__(self, image_info, offsets, filename):
-        self.dims = (
-            int(image_info["dims"][0]),
-            int(image_info["dims"][1]),
-            int(image_info["dims"][2]),
-            int(image_info["dims"][3]),
-        )
+        self.dims = image_info["dims"]  # Named tuple (x, y, z, t, m)
         self.path = image_info["path"]
         self.offsets = offsets
         self.info = image_info
         self.filename = filename
         self.name = image_info["name"]
         self.channels = image_info["channels"]
-        self.nz = int(image_info["dims"][2])
-        self.nt = int(image_info["dims"][3])
+        self.nz = int(image_info["dims"].z)
+        self.nt = int(image_info["dims"].t)
         self.scale = image_info["scale"]
         self.bit_depth = image_info["bit_depth"]
+        self.mosaic_position = image_info["mosaic_position"]
+        self.n_mosaic = int(image_info["dims"].m)
+
+    def __repr__(self):
+        return repr('LifImage object with dimensions: ' + str(self.dims))
 
     def _get_item(self, n):
         """
@@ -58,7 +62,8 @@ class LifImage:
         n = int(n)
         # Channels, times z, times t.
         # This is the number of 'images' in the block.
-        seek_distance = self.channels * self.dims[2] * self.dims[3]
+        seek_distance = (self.channels * self.dims.z
+                         * self.dims.t * self.dims.m)
         if n >= seek_distance:
             raise ValueError("Invalid item trying to be retrieved.")
         with open(self.filename, "rb") as image:
@@ -68,7 +73,7 @@ class LifImage:
                 # In the case of a blank image, we can calculate the length from
                 # the metadata in the LIF. When this is read by the parser,
                 # it is set to zero initially.
-                image_len = seek_distance * self.dims[0] * self.dims[1]
+                image_len = seek_distance * self.dims.x * self.dims.y
             else:
                 image_len = int(self.offsets[1] / seek_distance)
 
@@ -76,7 +81,8 @@ class LifImage:
             image.seek(self.offsets[0] + image_len * n)
 
             # It is not necessary to read from disk for truncated files
-            # Todo: Update this for 16-bit images
+
+            # Todo: Update this for 16-bit images if there is a test file
             if self.offsets[1] == 0:
                 data = b"\00" * image_len
             else:
@@ -89,24 +95,26 @@ class LifImage:
             # 'L' is 8-bit, 'I;16' is 16 bit
 
             # len(data) is the number of bytes (8-bit)
-            if len(data) == self.dims[0] * self.dims[1]:
+            # However, it is safer to let the lif file tell us the resolution
+            if self.bit_depth[0] == 8:
                 return Image.frombytes("L",
-                                       (self.dims[0], self.dims[1]), data)
-            elif (len(data) / 2) == self.dims[0] * self.dims[1]:
+                                       (self.dims.x, self.dims.y), data)
+            elif self.bit_depth[0] <= 16:
                 return Image.frombytes("I;16",
-                                       (self.dims[0], self.dims[1]), data)
+                                       (self.dims.x, self.dims.y), data)
             else:
                 raise ValueError("Unknown bit-depth, please submit a bug report"
                                  " on Github")
 
-    def get_frame(self, z=0, t=0, c=0):
+    def get_frame(self, z=0, t=0, c=0, m=0):
         """
-        Gets the specified frame (z, t, c) from image.
+        Gets the specified frame (z, t, c, m) from image.
 
         Args:
             z (int): z position
             t (int): time point
             c (int): channel
+            m (int): mosaic image
 
         Returns:
             Pillow Image object
@@ -114,14 +122,17 @@ class LifImage:
         t = int(t)
         c = int(c)
         z = int(z)
+        m = int(m)
         if z >= self.nz:
             raise ValueError("Requested Z frame doesn't exist.")
         elif t >= self.nt:
             raise ValueError("Requested T frame doesn't exist.")
         elif c >= self.channels:
             raise ValueError("Requested channel doesn't exist.")
+        elif m >= self.n_mosaic:
+            raise ValueError("Requested mosaic image doesn't exist.")
 
-        total_items = self.channels * self.nz * self.nt
+        total_items = self.channels * self.nz * self.nt * self.n_mosaic
 
         t_offset = self.channels * self.nz
         t_requested = t_offset * t
@@ -131,65 +142,93 @@ class LifImage:
 
         c_requested = c
 
-        item_requested = t_requested + z_requested + c_requested
+        m_offset = self.channels * self.nz * self.nt
+        m_requested = m_offset * m
+
+        item_requested = t_requested + z_requested + c_requested + m_requested
         if item_requested > total_items:
             raise ValueError("The requested item is after the end of the image")
 
         return self._get_item(item_requested)
 
-    def get_iter_t(self, z=0, c=0):
+    def get_iter_t(self, z=0, c=0, m=0):
         """
         Returns an iterator over time t at position z and channel c.
 
         Args:
             z (int): z position
             c (int): channel
+            m (int): mosaic image
 
         Returns:
             Iterator of Pillow Image objects
         """
         z = int(z)
         c = int(c)
+        m = int(m)
         t = 0
         while t < self.nt:
-            yield self.get_frame(z=z, t=t, c=c)
+            yield self.get_frame(z=z, t=t, c=c, m=m)
             t += 1
 
-    def get_iter_c(self, z=0, t=0):
+    def get_iter_c(self, z=0, t=0, m=0):
         """
         Returns an iterator over the channels at time t and position z.
 
         Args:
             z (int): z position
             t (int): time point
+            m (int): mosaic image
 
         Returns:
             Iterator of Pillow Image objects
         """
         t = int(t)
         z = int(z)
+        m = int(m)
         c = 0
         while c < self.channels:
-            yield self.get_frame(z=z, t=t, c=c)
+            yield self.get_frame(z=z, t=t, c=c, m=m)
             c += 1
 
-    def get_iter_z(self, t=0, c=0):
+    def get_iter_z(self, t=0, c=0, m=0):
         """
         Returns an iterator over the z series of time t and channel c.
 
         Args:
             t (int): time point
             c (int): channel
+            m (int): mosaic image
 
         Returns:
             Iterator of Pillow Image objects
         """
         t = int(t)
         c = int(c)
+        m = int(m)
         z = 0
         while z < self.nz:
-            yield self.get_frame(z=z, t=t, c=c)
+            yield self.get_frame(z=z, t=t, c=c, m=m)
             z += 1
+
+    def get_iter_m(self, z=0, t=0, c=0):
+        """
+        Returns an iterator over the z series of time t and channel c.
+
+        Args:
+            t (int): time point
+            c (int): channel
+            z (int): z position
+
+        Returns:
+            Iterator of Pillow Image objects
+        """
+        t = int(t)
+        c = int(c)
+        m = 0
+        while m < self.n_mosaic:
+            yield self.get_frame(z=z, t=t, c=c, m=m)
+            m += 1
 
 
 def _read_long(handle):
@@ -214,6 +253,7 @@ def _check_magic(handle, bool_return=False):
         return True
     else:
         if not bool_return:
+            handle.close()
             raise ValueError("This is probably not a LIF file. "
                              "Expected LIF magic byte at " + str(handle.tell()))
         else:
@@ -298,16 +338,6 @@ class LifFile:
 
             elif is_image:
                 # If additional XML data extraction is needed, add it here.
-                # Get number of frames (time points)
-                try:
-                    dim_t = int(item.find(
-                        "./Data/Image/ImageDescription/"
-                        "Dimensions/"
-                        "DimensionDescription"
-                        '[@DimID="4"]'
-                    ).attrib["NumberOfElements"])
-                except AttributeError:
-                    dim_t = 1
 
                 # Don't need a try / except block, all images have x and y
                 dim_x = int(item.find(
@@ -332,6 +362,28 @@ class LifFile:
                     ).attrib["NumberOfElements"])
                 except AttributeError:
                     dim_z = 1
+
+                # Get number of frames (time points)
+                try:
+                    dim_t = int(item.find(
+                        "./Data/Image/ImageDescription/"
+                        "Dimensions/"
+                        "DimensionDescription"
+                        '[@DimID="4"]'
+                    ).attrib["NumberOfElements"])
+                except AttributeError:
+                    dim_t = 1
+
+                # m for mosaic images
+                try:
+                    dim_m = int(item.find(
+                        "./Data/Image/ImageDescription/"
+                        "Dimensions/"
+                        "DimensionDescription"
+                        '[@DimID="10"]'
+                    ).attrib["NumberOfElements"])
+                except AttributeError:
+                    dim_m = 1
 
                 # Determine number of channels
                 channel_list = item.findall(
@@ -392,30 +444,27 @@ class LifFile:
                 except (AttributeError, ZeroDivisionError):
                     scale_t = None
 
-                # Adding error when tyring to read mosaic files, this is
-                # placeholder code until the feature can be implemented
-                try:
-                    len_m = item.find(
-                        "./Data/Image/ImageDescription/"
-                        "Dimensions/"
-                        "DimensionDescription"
-                        '[@DimID="10"]'
-                    ).attrib["NumberOfElements"]
-                    if len_m is not None:
-                        raise NotImplementedError("readlif doesn't support "
-                                                  "mosaic / tiled images yet! "
-                                                  "Please check the readlif "
-                                                  "github for progress.")
-                except AttributeError:
-                    pass
+                # Get the position data if the image is tiled
+                m_pos_list = []
+                if dim_m > 1:
+                    for tile in item.findall("./Data/Image/Attachment/Tile"):
+                        FieldX = int(tile.attrib["FieldX"])
+                        FieldY = int(tile.attrib["FieldY"])
+                        PosX = float(tile.attrib["PosY"])
+                        PosY = float(tile.attrib["PosY"])
+
+                        m_pos_list.append((FieldX, FieldY, PosX, PosY))
+
+                Dims = namedtuple("Dims", "x y z t m")
 
                 data_dict = {
-                    "dims": (dim_x, dim_y, dim_z, dim_t),
+                    "dims": Dims(dim_x, dim_y, dim_z, dim_t, dim_m),
                     "path": str(path + "/"),
                     "name": item.attrib["Name"],
                     "channels": n_channels,
                     "scale": (scale_x, scale_y, scale_z, scale_t),
-                    "bit_depth": bit_depth
+                    "bit_depth": bit_depth,
+                    "mosaic_position": m_pos_list
                 }
 
                 return_list.append(data_dict)
@@ -492,6 +541,14 @@ class LifFile:
                              "be truncated. Something has gone wrong.")
         else:
             self.num_images = len(self.image_list)
+
+    def __repr__(self):
+        if self.num_images == 1:
+            return repr('LifFile object with ' + str(self.num_images)
+                        + ' image')
+        else:
+            return repr('LifFile object with ' + str(self.num_images)
+                        + ' images')
 
     def get_image(self, img_n=0):
         """

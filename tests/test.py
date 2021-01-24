@@ -1,7 +1,27 @@
 import unittest
+import os
 from readlif.reader import LifFile
 from readlif.utilities import get_xml
 from PIL import Image
+
+# Todo: Test a truncated image
+
+
+def downloadPrivateFile(filename):
+    import requests
+    pwd = os.environ.get('READLIF_TEST_DL_PASSWD')
+
+    dl_url = "https://cdn.nimne.com/readlif/" + str(filename)
+
+    if not os.path.exists("./tests/private/"):
+        os.makedirs("./tests/private/")
+
+    if not os.path.exists("./tests/private/" + filename):
+        with requests.get(dl_url, stream=True, auth=('readlif', pwd)) as r:
+            r.raise_for_status()
+            with open("./tests/private/" + filename, "wb") as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
 
 
 class TestReadMethods(unittest.TestCase):
@@ -29,6 +49,9 @@ class TestReadMethods(unittest.TestCase):
         self.assertEqual(len(images), 1)
 
         obj = LifFile("./tests/xyzt_test.lif").get_image(0)
+        self.assertEqual(repr(obj), "'LifImage object with "
+                                    "dimensions: "
+                                    "Dims(x=1024, y=1024, z=3, t=3, m=1)'")
 
         c_list = [i for i in obj.get_iter_c()]
         self.assertEqual(len(c_list), 2)
@@ -45,6 +68,8 @@ class TestReadMethods(unittest.TestCase):
 
     def test_not_that_many_images(self):
         obj = LifFile("./tests/xyzt_test.lif")
+        self.assertEqual(repr(obj), "'LifFile object with 1 image'")
+
         with self.assertRaises(ValueError):
             obj.get_image(10)
 
@@ -59,6 +84,9 @@ class TestReadMethods(unittest.TestCase):
             image.get_frame(z=0, t=0, c=10)
 
         with self.assertRaises(ValueError):
+            image.get_frame(z=0, t=0, c=0, m=10)
+
+        with self.assertRaises(ValueError):
             image._get_item(100)
 
     def test_scale(self):
@@ -69,13 +97,47 @@ class TestReadMethods(unittest.TestCase):
         obj = LifFile("./tests/xyzt_test.lif").get_image(0)
         self.assertEqual(obj.bit_depth[0], 8)
 
-    def test_not_implemented_mosaic(self):
-        import os
-        # Can't test this in CI, don't have permission to publish this
-        if os.path.exists("./tests/private/tile_002.lif"):
-            with self.assertRaises(NotImplementedError):
-                LifFile("./tests/private/tile_002.lif").get_image(0)
-        pass
+    def test_private_images_16bit(self):
+        # These tests are for images that are not public.
+        # These images will be pulled from a protected web address
+        # during CI testing.
+        if os.environ.get('READLIF_TEST_DL_PASSWD') is not None:
+            downloadPrivateFile("16bit.lif")
+            downloadPrivateFile("i1c0z2_16b.tif")
+            # Note - readlif produces little endian files,
+            # ImageJ makes big endian files for 16bit by default
+            obj = LifFile("./tests/private/16bit.lif").get_image(1)
+
+            self.assertEqual(obj.bit_depth[0], 12)
+
+            ref = Image.open("./tests/private/i1c0z2_16b.tif")
+            test = obj.get_frame(z=2, c=0)
+
+            self.assertEqual(test.tobytes(), ref.tobytes())
+        else:
+            print("\nSkipped private test for 16-bit images\n")
+
+    def test_private_images_mosaic(self):
+        # These tests are for images that are not public.
+        # These images will be pulled from a protected web address
+        # during CI testing.
+        if os.environ.get('READLIF_TEST_DL_PASSWD') is not None:
+            downloadPrivateFile("tile_002.lif")
+            downloadPrivateFile("i0c1m2z0.tif")
+
+            obj = LifFile("./tests/private/tile_002.lif").get_image(0)
+            self.assertEqual(obj.dims.m, 165)
+
+            m_list = [i for i in obj.get_iter_m()]
+            self.assertEqual(len(m_list), 165)
+
+            ref = Image.open("./tests/private/i0c1m2z0.tif")
+            test = obj.get_frame(c=1, m=2)
+
+            self.assertEqual(test.tobytes(), ref.tobytes())
+
+        else:
+            print("\nSkipped private test for mosaic images\n")
 
 
 if __name__ == "__main__":
