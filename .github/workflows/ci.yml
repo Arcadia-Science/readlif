@@ -36,12 +36,12 @@ jobs:
     strategy:
       matrix:
         os:
-          # - 'macos-10.15'
+          - 'macos-10.15'
           # - 'macos-11.0'
-          # - 'ubuntu-18.04'
+          - 'ubuntu-18.04'
           - 'ubuntu-20.04'
-          # - 'ubuntu-16.04'
-          # - 'windows-2019'
+          - 'ubuntu-16.04'
+          - 'windows-2019'
         python-version:
           - '3.6'
           - '3.7'
@@ -67,8 +67,7 @@ jobs:
         run: tox
 
   publish:
-    #if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     runs-on: ubuntu-latest
     name: Publish
     steps:
@@ -89,5 +88,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@v1.4.1
         with:
           user: __token__
-          password: ${{ secrets.PYPI_TEST_API_TOKEN }}
-          repository_url: https://test.pypi.org/legacy/
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          repository_url: https://upload.pypi.org/legacy/
+          #password: ${{ secrets.PYPI_TEST_API_TOKEN }}
+          #repository_url: https://test.pypi.org/legacy/
