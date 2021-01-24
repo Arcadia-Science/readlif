@@ -1,5 +1,5 @@
 [![Documentation Status](https://readthedocs.org/projects/readlif/badge/?version=latest)](https://readlif.readthedocs.io/en/latest/?badge=latest)
-[![Test Status](https://github.com/nimne/readlif/workflows/CI-Tests/)](https://github.com/nimne/readlif/workflows/CI-Tests/badge.svg)
+![CI-Tests](https://github.com/nimne/readlif/workflows/CI-Tests/badge.svg)
 
 readlif README file
 ===
