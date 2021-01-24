@@ -81,6 +81,7 @@ class LifImage:
             image.seek(self.offsets[0] + image_len * n)
 
             # It is not necessary to read from disk for truncated files
+
             # Todo: Update this for 16-bit images if there is a test file
             if self.offsets[1] == 0:
                 data = b"\00" * image_len

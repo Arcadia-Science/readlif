@@ -24,6 +24,7 @@ python setup.py install
 
 Known issues
 ===
+
 There may be an issue where a truncated 16-bit file will load incorrectly, however
 this is not tested. If you have an example file, open an issue!
 

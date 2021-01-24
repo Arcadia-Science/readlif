@@ -139,6 +139,6 @@ class TestReadMethods(unittest.TestCase):
         else:
             print("\nSkipped private test for mosaic images\n")
 
-
+            
 if __name__ == "__main__":
     unittest.main()
