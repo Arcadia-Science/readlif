@@ -28,7 +28,7 @@ jobs:
       - name: flake8
         uses: py-actions/flake8@v1
 
-  build:
+  partial_test: # Don't download full images for non-latest python
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -46,7 +46,6 @@ jobs:
           - '3.6'
           - '3.7'
           - '3.8'
-          - '3.9'
           - 'pypy-3.7'
 
     steps:
@@ -62,9 +61,42 @@ jobs:
           python -m pip install --upgrade pip
           pip install tox tox-gh-actions
       - name: Test with tox
-        env:
-          READLIF_TEST_DL_PASSWD: ${{ secrets.READLIF_TEST_DL_PASSWD }}
         run: tox
+
+full_test: # Full test-suite for latest python
+  runs-on: ${{ matrix.os }}
+  defaults:
+    run:
+      shell: bash
+  strategy:
+    matrix:
+      os:
+        - 'macos-10.15'
+        # - 'macos-11.0'
+        - 'ubuntu-18.04'
+        - 'ubuntu-20.04'
+        - 'ubuntu-16.04'
+        - 'windows-2019'
+      python-version:
+        - '3.9'
+
+  steps:
+    # Setup steps
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    # Install tox and tox plugin
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install tox tox-gh-actions
+    - name: Test with tox
+      env:
+        READLIF_TEST_DL_PASSWD: ${{ secrets.READLIF_TEST_DL_PASSWD }}
+      run: tox
+
 
   publish:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
