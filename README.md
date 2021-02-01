@@ -1,5 +1,5 @@
 [![Documentation Status](https://readthedocs.org/projects/readlif/badge/?version=latest)](https://readlif.readthedocs.io/en/latest/?badge=latest)
-[![Test Status](https://github.com/nimne/readlif/workflows/CI-Tests/)](https://github.com/nimne/readlif/workflows/CI-Tests/badge.svg)
+[![CI-Tests](https://github.com/nimne/readlif/workflows/CI-Tests/badge.svg)](https://github.com/nimne/readlif/actions?query=workflow%3ACI-Tests)
 
 readlif README file
 ===
@@ -87,6 +87,10 @@ This has only been tested on Lif files that were generated with Leica LAS X and 
 
 Changelog
 ======
+#### 0.4.1
+- Fixed critical documentaiton error:
+    - `LifImage.scale` is in px/µm, not px/nm for X and Y dimensions
+
 #### 0.4.0
 - Added support for tiled images
     - `m` was added as a new dimension (for tiled images)
