@@ -20,7 +20,7 @@ class LifImage:
         nz (int): number of 'z' frames
         nt (int): number of 't' frames
         scale (tuple): (scale_x, scale_y, scale_z, scale_t).
-            Conversion factor: px/nm for x, y and z; sec/image for t.
+            Conversion factor: px/µm for x, y and z; sec/image for t.
         bit_depth (tuple): A tuple of ints that indicates the bit depth of
             each channel in the image.
         mosaic_position (list): If the image is a mosaic (tiled), this contains
