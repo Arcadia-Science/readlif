@@ -87,6 +87,10 @@ This has only been tested on Lif files that were generated with Leica LAS X and 
 
 Changelog
 ======
+#### 0.5.0
+- Added support for loading files from buffers
+    - Thans to PR from @JacksonMaxfield
+
 #### 0.4.1
 - Fixed critical documentaiton error:
     - `LifImage.scale` is in px/µm, not px/nm for X and Y dimensions
@@ -110,6 +114,7 @@ Changelog
 - Added support for 16-bit images, increased minimum Pillow version to 7.2.0.
     - New `LifImage` attribute `bit_depth` is a tuple of intigers descibing the bit
     depth for each channel in the image. 
+    - Thanks to @DirkRemmers for providing the example file.
 - Changed type from `str` to `int` for `dims` and `channels` in the `info` dictionary
 - Added python 3.9 to build testing
 

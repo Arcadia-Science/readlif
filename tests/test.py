@@ -115,7 +115,8 @@ class TestReadMethods(unittest.TestCase):
         # These tests are for images that are not public.
         # These images will be pulled from a protected web address
         # during CI testing.
-        if os.environ.get('READLIF_TEST_DL_PASSWD') is not None:
+        if os.environ.get('READLIF_TEST_DL_PASSWD') is not None \
+                and os.environ.get('READLIF_TEST_DL_PASSWD') != "":
             downloadPrivateFile("16bit.lif")
             downloadPrivateFile("i1c0z2_16b.tif")
             # Note - readlif produces little endian files,
@@ -135,7 +136,8 @@ class TestReadMethods(unittest.TestCase):
         # These tests are for images that are not public.
         # These images will be pulled from a protected web address
         # during CI testing.
-        if os.environ.get('READLIF_TEST_DL_PASSWD') is not None:
+        if os.environ.get('READLIF_TEST_DL_PASSWD') is not None\
+                and os.environ.get('READLIF_TEST_DL_PASSWD') != "":
             downloadPrivateFile("tile_002.lif")
             downloadPrivateFile("i0c1m2z0.tif")
 
