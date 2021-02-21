@@ -17,7 +17,7 @@ class LifImage:
         dims (tuple): (x, y, z, t, m)
         name (str): image name
         offsets (list): Byte position offsets for each image.
-        filename (str, bytes, os.PathLike, io.BufferedIOBase): The name of the LIF file
+        filename (str, bytes, os.PathLike, io.IOBase): The name of the LIF file
             being read
         channels (int): Number of channels in the image
         nz (int): number of 'z' frames
@@ -72,11 +72,11 @@ class LifImage:
 
         if isinstance(self.filename, (str, bytes, os.PathLike)):
             image = open(self.filename, "rb")
-        elif isinstance(self.filename, io.BufferedIOBase):
+        elif isinstance(self.filename, io.IOBase):
             image = self.filename
         else:
             raise TypeError(
-                f"expected str, bytes, os.PathLike, or io.BufferedIOBase, "
+                f"expected str, bytes, os.PathLike, or io.IOBase, "
                 f"not {type(self.filename)}"
             )
 
@@ -492,11 +492,11 @@ class LifFile:
 
         if isinstance(filename, (str, bytes, os.PathLike)):
             f = open(filename, "rb")
-        elif isinstance(filename, io.BufferedIOBase):
+        elif isinstance(filename, io.IOBase):
             f = filename
         else:
             raise TypeError(
-                f"expected str, bytes, os.PathLike, or io.BufferedIOBase, "
+                f"expected str, bytes, os.PathLike, or io.IOBase, "
                 f"not {type(filename)}"
             )
         f_len = _get_len(f)
