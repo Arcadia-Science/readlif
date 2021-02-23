@@ -87,6 +87,10 @@ This has only been tested on Lif files that were generated with Leica LAS X and 
 
 Changelog
 ======
+#### 0.5.1
+- Bugfix: switch from `io.BufferedIOBase` to `io.IOBase`
+
+
 #### 0.5.0
 - Added support for loading files from buffers
     - Thans to PR from @JacksonMaxfield
