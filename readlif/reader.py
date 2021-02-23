@@ -168,29 +168,27 @@ class LifImage:
             image.seek(self.offsets[0])
             data = bytes()
 
-            themagic = 0
-            for dloop in range(0, self.dims_n[display_dims[0]]):
-                # Todo: Test truncated file..
+            # themagic = 0
+            # Step 1, create an array of values for the display dims if not exist
+            # if len(display_dims[0]) == 1:
+            display_x = range(0, self.dims_n[display_dims[0]])
+            display_y = range(0, self.dims_n[display_dims[1]])
 
-                # for dim in self.dims_n:
-                dim_tot = 0
-                # The display dims need to be in here somewhere - otherwise it doesn't work...
-                # Dims are in reverse order. Position of any pixel is:
-                # Position in dim 10 (outer container) * position in dim 9 * position in dim 8 ... etc.
-                for dim in self.dims_n.keys():
-                    # Todo: This isn't working
-                    # always request a dim of length 1 - it exists, even if not specified
-                    dim_tot = dim_tot + (self.channels * dims_dict[dim] * self.dims_n.get(dim, 1))
-                    # print(themagic, self.channels, dims_dict[dim], self.dims_n.get(dim, 1))
-                    # print(dim_tot)
+            for x in display_x:
+                for y in display_y:
+                    px_pos = x * self.dims_n[display_dims[0]]
+                    for i in self.dims_n.keys():
+                        if i not in display_dims:
+                            other_len = dims_dict[i] * self.dims_n[i]
+                            px_pos += px_pos + other_len
 
-                themagic = themagic + dim_tot
-                print(themagic)
-                image.seek(image.tell() + themagic)
-                if self.offsets[1] == 0:
-                    data = data + b"\00" * self.dims_n[display_dims[1]]
-                else:
-                    data = data + image.read(self.dims_n[display_dims[1]])
+                        px_pos = px_pos + y * self.dims_n[display_dims[1]]
+                        # print(px_pos)
+                        image.seek(self.offsets[0] + px_pos)
+                        if self.offsets[1] == 0:
+                            data = data + b"\00" * 1
+                        else:
+                            data = data + image.read(1)
 
         # LIF files can be either 8-bit of 16-bit.
         # Because of how the image is read in, all of the raw
