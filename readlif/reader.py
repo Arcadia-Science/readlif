@@ -142,20 +142,15 @@ class LifImage:
 
         if display_dims is None:
             display_dims = self.display_dims
-
         # Set all requested dims to 0:
-        # Todo: Change 10 to max dim?
         for i in range(1, 11):
             dims_dict[i] = dims_dict.get(i, 0)
 
         # Check if any of the dims exceeds what is in the image
-
-        for i in range(1, 11):
-            if dims_dict[i] > self.dims_n.get(i, 0):
+        for i in self.dims_n.keys():
+            if (dims_dict[i] + 1) > self.dims_n.get(i, 0):
                 raise ValueError(f"Requested frame in dimension {str(i)} "
                                  f"doesn't exist")
-
-        # total_items = self.channels * self._get_len_nondisplay_dims()
 
         # What needs to happen here:
         # Each 'block' for display_dim[0] needs to be found for each y
@@ -168,28 +163,29 @@ class LifImage:
             image.seek(self.offsets[0])
             data = bytes()
 
-            # themagic = 0
-            # Step 1, create an array of values for the display dims if not exist
-            # if len(display_dims[0]) == 1:
             display_x = range(0, self.dims_n[display_dims[0]])
             display_y = range(0, self.dims_n[display_dims[1]])
 
-            for x in display_x:
-                for y in display_y:
-                    px_pos = x * self.dims_n[display_dims[0]]
-                    for i in self.dims_n.keys():
-                        if i not in display_dims:
-                            other_len = dims_dict[i] * self.dims_n[i]
-                            px_pos += px_pos + other_len
+            dim_len = [self.dims_n[i] for i in self.dims_n.keys()]  # For calculations below
+            key_idx = range(0, len(dim_len))  # For calculations below
+            for pos_y in display_y:
+                for pos_x in display_x:
+                    px_pos = 0  # Reset position on every loop
+                    dims_dict[display_dims[0]] = pos_x
+                    dims_dict[display_dims[1]] = pos_y
+                    for key, i in zip(self.dims_n.keys(), key_idx):
+                        # Multiply requested n by the length of all dims < than n
+                        remaining_dims = dim_len[:i]
 
-                        px_pos = px_pos + y * self.dims_n[display_dims[1]]
-                        # print(px_pos)
-                        image.seek(self.offsets[0] + px_pos)
-                        if self.offsets[1] == 0:
-                            data = data + b"\00" * 1
+                        if len(remaining_dims) > 0:
+                            px_pos += dims_dict[key] * reduce(lambda x, y: x * y, dim_len[:i])
                         else:
-                            data = data + image.read(1)
-
+                            px_pos += dims_dict[key]
+                    if self.offsets[1] == 0:
+                        data = data + b"\00" * 1
+                    else:
+                        image.seek(self.offsets[0] + px_pos)
+                        data = data + image.read(1)
         # LIF files can be either 8-bit of 16-bit.
         # Because of how the image is read in, all of the raw
         # data is already in 'data', we just need to tell Pillow
@@ -200,13 +196,13 @@ class LifImage:
         # However, it is safer to let the lif file tell us the resolution
         if self.bit_depth[0] == 8:
             return Image.frombytes("L",
-                                   (self.dims_n[self.display_dims[0]],
-                                    self.dims_n[self.display_dims[1]]),
+                                   (self.dims_n[display_dims[0]],
+                                    self.dims_n[display_dims[1]]),
                                    data)
         elif self.bit_depth[0] <= 16:
             return Image.frombytes("I;16",
-                                   (self.dims_n[self.display_dims[0]],
-                                    self.dims_n[self.display_dims[1]]),
+                                   (self.dims_n[display_dims[0]],
+                                    self.dims_n[display_dims[1]]),
                                    data)
         else:
             raise ValueError("Unknown bit-depth, please submit a bug report"
