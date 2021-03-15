@@ -31,6 +31,8 @@ this is not tested. If you have an example file, open an issue!
 There is not support for FlipX, FlipY and SwapXY metadata. If you need this, 
 please open an issue!
 
+Truncated images are returned as blank images.
+
 12- and 16-bit images
 ===
 As of 0.3.0, `reaflif` will now support images with bit depth greater than 8.
