@@ -166,20 +166,20 @@ class LifImage:
             key_idx = range(0, len(dim_len))  # For calculations below
             precalc_dim_prod = tuple([reduce(lambda x, y: x * y, dim_len[:i])
                                       for i in key_idx if len(dim_len[:i]) > 0])
-
+            total_len = self.dims_n[display_dims[0]] * self.dims_n[display_dims[1]]
+            channel_offset = c * total_len
             # Speedup for the common case where the display_dims are the first two tims
             if display_dims == self.display_dims:
-                total_len = self.dims_n[display_dims[0]] * self.dims_n[display_dims[1]]
                 px_pos = 0
-
+                px_pos += channel_offset
                 for key, i in zip(self.dims_n.keys(), key_idx):
                     # Multiply requested n by the length of all dims < than n
                     remaining_dims = dim_len[:i]
 
                     if len(remaining_dims) > 0:
-                        px_pos += req_dims_dict[key] * precalc_dim_prod[i - 1]
+                        px_pos += req_dims_dict[key] * precalc_dim_prod[i - 1] * self.channels
                     else:
-                        px_pos += req_dims_dict[key]
+                        px_pos += req_dims_dict[key] * self.channels
                 if self.offsets[1] == 0:
                     data = data + b"\00" * total_len
                 else:
@@ -191,15 +191,17 @@ class LifImage:
                 for pos_y in display_y:
                     for pos_x in display_x:
                         px_pos = 0  # Reset position on every loop
+                        px_pos += channel_offset
+
                         req_dims_dict[display_dims[0]] = pos_x
                         req_dims_dict[display_dims[1]] = pos_y
                         for key, i in zip(self.dims_n.keys(), key_idx):
                             # Multiply requested n by the length of all dims < than n
                             remaining_dims = dim_len[:i]
                             if len(remaining_dims) > 0:
-                                px_pos += (c + 1) * req_dims_dict[key] * precalc_dim_prod[i - 1]
+                                px_pos += (c + 1) * req_dims_dict[key] * precalc_dim_prod[i - 1] * self.channels
                             else:
-                                px_pos += (c + 1) * req_dims_dict[key]
+                                px_pos += (c + 1) * req_dims_dict[key] * self.channels
                         if self.offsets[1] == 0:
                             data = data + b"\00" * 1
                         else:
