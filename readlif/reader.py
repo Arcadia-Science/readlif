@@ -466,7 +466,7 @@ class LifFile:
                     for tile in item.findall("./Data/Image/Attachment/Tile"):
                         FieldX = int(tile.attrib["FieldX"])
                         FieldY = int(tile.attrib["FieldY"])
-                        PosX = float(tile.attrib["PosY"])
+                        PosX = float(tile.attrib["PosX"])
                         PosY = float(tile.attrib["PosY"])
 
                         m_pos_list.append((FieldX, FieldY, PosX, PosY))
