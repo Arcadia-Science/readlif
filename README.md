@@ -93,6 +93,8 @@ This has only been tested on Lif files that were generated with Leica LAS X and 
 Changelog
 ======
 #### 0.6.0
+- Added support for non-XY images with `get_plane()`. See docs for usage.
+    - Note: Reading arbitrary planes (i.e. an XZ plane of an XY image) is not yet supported. 
 
 #### 0.5.2
 - Bugfix: Fix error in mosaic parsing. `PosX` metadata was incorrectly read from `PosY`
