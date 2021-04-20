@@ -19,11 +19,11 @@ sys.path.insert(0, os.path.abspath(".."))
 # -- Project information -----------------------------------------------------
 
 project = "readlif"
-copyright = "2019, Nick Negretti"
+copyright = "2021, Nick Negretti"
 author = "Nick Negretti"
 
 # The full version, including alpha/beta/rc tags
-release = "0.5.1"
+release = "0.6.0"
 
 
 # -- General configuration ---------------------------------------------------

@@ -117,6 +117,7 @@ class TestReadMethods(unittest.TestCase):
         # during CI testing.
         if os.environ.get('READLIF_TEST_DL_PASSWD') is not None \
                 and os.environ.get('READLIF_TEST_DL_PASSWD') != "":
+
             downloadPrivateFile("16bit.lif")
             downloadPrivateFile("i1c0z2_16b.tif")
             # Note - readlif produces little endian files,
@@ -136,8 +137,10 @@ class TestReadMethods(unittest.TestCase):
         # These tests are for images that are not public.
         # These images will be pulled from a protected web address
         # during CI testing.
+
         if os.environ.get('READLIF_TEST_DL_PASSWD') is not None\
                 and os.environ.get('READLIF_TEST_DL_PASSWD') != "":
+
             downloadPrivateFile("tile_002.lif")
             downloadPrivateFile("i0c1m2z0.tif")
 
@@ -154,6 +157,38 @@ class TestReadMethods(unittest.TestCase):
 
         else:
             print("\nSkipped private test for mosaic images\n")
+
+    def test_get_plane_on_normal_img(self):
+        # order = c, z, t
+        test_array = [[0, 0, 0], [0, 2, 0], [0, 2, 2], [1, 0, 0]]
+        for i in test_array:
+            c = str(i[0])
+            z = str(i[1])
+            t = str(i[2])
+            ref = Image.open("./tests/tiff/c" + c + "z" + z + "t" + t + ".tif")
+
+            obj = LifFile("./tests/xyzt_test.lif").get_image(0)
+            # 3: z
+            # 4: t
+            test = obj.get_plane(c=c, requested_dims={3: z, 4: t})
+            self.assertEqual(test.tobytes(), ref.tobytes())
+
+    def test_get_plane_on_xz_img(self):
+        ref = Image.open("./tests/tiff/xz_c0_t0.tif")
+        obj = LifFile("./tests/testdata_2channel_xz.lif").get_image(0)
+        test = obj.get_plane(c=0, requested_dims={4: 0})
+        self.assertEqual(test.tobytes(), ref.tobytes())
+
+        ref2 = Image.open("./tests/tiff/xz_c1_t8.tif")
+        # 3: z
+        # 4: t
+        test2 = obj.get_plane(c=1, requested_dims={4: 8})
+        self.assertEqual(test2.tobytes(), ref2.tobytes())
+
+    def test_arbitrary_plane_on_xzt_img(self):
+        obj = LifFile("./tests/LeicaLASX_wavelength-sweep_example.lif").get_image(0)
+        with self.assertRaises(NotImplementedError):
+            obj.get_plane(display_dims=(1, 5), c=0, requested_dims={2: 31})
 
 
 if __name__ == "__main__":
