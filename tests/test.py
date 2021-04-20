@@ -157,18 +157,21 @@ class TestReadMethods(unittest.TestCase):
             self.assertEqual(test.tobytes(), ref.tobytes())
 
     def test_get_plane_on_xz_img(self):
-        # order = c, z, t
-        test_array = [[0, 0, 0], [0, 2, 0], [0, 2, 2], [1, 0, 0]]
-        for i in test_array:
-            x = str(i[0])
-            z = str(i[1])
-            ref = Image.open("./tests/tiff/xz_x" + x + "z" + z + "t.tif")
+        ref = Image.open("./tests/tiff/xz_c0_t0.tif")
+        obj = LifFile("./tests/testdata_2channel_xz.lif").get_image(0)
+        test = obj.get_plane(c=0, requested_dims={4: 0})
+        self.assertEqual(test.tobytes(), ref.tobytes())
 
-            obj = LifFile("./tests/LeicaLASX_xz-plane_example.lif").get_image(0)
-            # 3: z
-            # 4: t
-            test = obj.get_plane(requested_dims={3: z, 4: t})
-            self.assertEqual(test.tobytes(), ref.tobytes())
+        ref2 = Image.open("./tests/tiff/xz_c1_t8.tif")
+        # 3: z
+        # 4: t
+        test2 = obj.get_plane(c=1, requested_dims={4: 8})
+        self.assertEqual(test2.tobytes(), ref2.tobytes())
+
+    def test_arbitrary_plane_on_xzt_img(self):
+        obj = LifFile("./tests/LeicaLASX_wavelength-sweep_example.lif").get_image(0)
+        with self.assertRaises(NotImplementedError):
+            obj.get_plane(display_dims=(1, 5), c=0, requested_dims={2: 31})
 
 
 if __name__ == "__main__":

@@ -74,7 +74,7 @@ class LifImage:
     def __init__(self, image_info, offsets, filename):
         self.dims = image_info["dims"]  # Named tuple (x, y, z, t, m)
         self.display_dims = image_info["display_dims"]  # Tuple with two numbered values
-        self.dims_n = image_info["dims_n"] #
+        self.dims_n = image_info["dims_n"]
         self.scale_n = image_info["scale_n"]
         self.path = image_info["path"]
         self.offsets = offsets
@@ -102,7 +102,7 @@ class LifImage:
             len_nondisplay = non_display_dims_len[0]
         else:
             len_nondisplay = 1
-        return(int(len_nondisplay))
+        return int(len_nondisplay)
 
     def _get_item(self, n):
         """
@@ -191,12 +191,14 @@ class LifImage:
         elif type(display_dims) is not tuple or len(display_dims) != 2:
             raise ValueError("display_dims must be a two value tuple")
 
-
         if requested_dims.keys() in display_dims:
             warnings.warn("One or more of the display_dims is in the "
                           "requested_dims dictionary. Currently this has no "
                           "effect. All data from the display_dims will be "
                           "returned.")
+
+        if display_dims != self.display_dims:
+            raise NotImplementedError("Arbitrary dimensions are not yet supported")
 
         # Set all requested dims to 0:
         for i in range(1, 11):
@@ -218,7 +220,7 @@ class LifImage:
             display_x = range(0, self.dims_n[display_dims[0]])
             display_y = range(0, self.dims_n[display_dims[1]])
 
-            dim_len = [self.dims_n[i] for i in self.dims_n.keys()]  # For calculations below
+            dim_len = [self.dims_n[i] for i in self.dims_n.keys()]  # For calculations below - list of dimension lengths
             key_idx = range(0, len(dim_len))  # For calculations below
 
             # Note, this does not include the first dim, need to index i - 1 later
@@ -229,7 +231,7 @@ class LifImage:
             total_len = self.dims_n[display_dims[0]] * self.dims_n[display_dims[1]]
             channel_offset = c * total_len
 
-            # Speedup for the common case where the display_dims are the first two tims
+            # Speedup for the common case where the display_dims are the first two dims
             if display_dims == self.display_dims:
                 px_pos = 0
                 px_pos += channel_offset
@@ -250,6 +252,7 @@ class LifImage:
 
             # Handle the less common case, where the display_dims are arbitrary
             else:
+                # Todo: Fix channel offset problems
                 for pos_y in display_y:
                     for pos_x in display_x:
                         px_pos = 0  # Reset position on every loop
@@ -261,9 +264,9 @@ class LifImage:
                             # Multiply requested n dims by the length of all dims below n in the hierarchy
                             remaining_dims = dim_len[:i]
                             if len(remaining_dims) > 0:
-                                px_pos += (c + 1) * requested_dims[key] * precalc_dim_prod[i - 1] * self.channels
+                                px_pos += requested_dims[key] * precalc_dim_prod[i - 1] * self.channels
                             else:
-                                px_pos += (c + 1) * requested_dims[key] * self.channels
+                                px_pos += requested_dims[key] * self.channels
                         if self.offsets[1] == 0:
                             data = data + b"\00" * 1
                         else:
