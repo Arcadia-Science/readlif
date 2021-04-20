@@ -8,7 +8,6 @@ import os
 import io
 
 
-
 class LifImage:
     """
     This should not be called directly. This should be generated while calling
