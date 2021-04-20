@@ -141,6 +141,35 @@ class TestReadMethods(unittest.TestCase):
         else:
             print("\nSkipped private test for mosaic images\n")
 
+    def test_get_plane_on_normal_img(self):
+        # order = c, z, t
+        test_array = [[0, 0, 0], [0, 2, 0], [0, 2, 2], [1, 0, 0]]
+        for i in test_array:
+            c = str(i[0])
+            z = str(i[1])
+            t = str(i[2])
+            ref = Image.open("./tests/tiff/c" + c + "z" + z + "t" + t + ".tif")
+
+            obj = LifFile("./tests/xyzt_test.lif").get_image(0)
+            # 3: z
+            # 4: t
+            test = obj.get_plane(c=c, requested_dims={3: z, 4: t})
+            self.assertEqual(test.tobytes(), ref.tobytes())
+
+    def test_get_plane_on_xz_img(self):
+        # order = c, z, t
+        test_array = [[0, 0, 0], [0, 2, 0], [0, 2, 2], [1, 0, 0]]
+        for i in test_array:
+            x = str(i[0])
+            z = str(i[1])
+            ref = Image.open("./tests/tiff/xz_x" + x + "z" + z + "t.tif")
+
+            obj = LifFile("./tests/LeicaLASX_xz-plane_example.lif").get_image(0)
+            # 3: z
+            # 4: t
+            test = obj.get_plane(requested_dims={3: z, 4: t})
+            self.assertEqual(test.tobytes(), ref.tobytes())
+
 
 if __name__ == "__main__":
     unittest.main()

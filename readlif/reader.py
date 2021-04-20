@@ -14,14 +14,52 @@ class LifImage:
     Attributes:
         path (str): path / name of the image
         dims (tuple): (x, y, z, t, m)
+        display_dims (tuple): The first two dimensions of the lif file.
+            This is used to decide what dimensions are returned in a 2D plane.
+        dims_n (dict): {0: length, 1: length, 2: length, n: length}
+
+            For atypical imaging experiments, i.e. those not simple photos
+            of XY frames, this attribute will be more useful than `dims`.
+            This attribute will hold a dictionary with the length of each
+            dimension, in the order it is referenced in the .lif file.
+
+            Currently, only some of the 10 possible dimensions are used / known:
+
+            - 1: x-axis
+
+            - 2: y-axis
+
+            - 3: z-axis
+
+            - 4: time
+
+            - 5: detection wavelength
+
+            - 6-8: Unknown
+
+            - 9: illumination wavelength
+
+            - 10: mosaic tile
+
         name (str): image name
         offsets (list): Byte position offsets for each image.
         filename (str): The name of the LIF file being read
         channels (int): Number of channels in the image
         nz (int): number of 'z' frames
+
+            Note, it is recommended to use `dims.z` instead. However, this will
+            be kept for compatibility.
         nt (int): number of 't' frames
+
+            Note, it is recommended to use `dims.t` instead. However, this will
+            be kept for compatibility.
         scale (tuple): (scale_x, scale_y, scale_z, scale_t).
+
             Conversion factor: px/µm for x, y and z; sec/image for t.
+        scale_n (dict): {0: length, 1: length, 2: length...}.
+
+            Conversion factor: px/µm for x, y and z; sec/image for t. Related
+            to `dims_n` above.
         bit_depth (tuple): A tuple of ints that indicates the bit depth of
             each channel in the image.
         mosaic_position (list): If the image is a mosaic (tiled), this contains
@@ -36,7 +74,7 @@ class LifImage:
     def __init__(self, image_info, offsets, filename):
         self.dims = image_info["dims"]  # Named tuple (x, y, z, t, m)
         self.display_dims = image_info["display_dims"]  # Tuple with two numbered values
-        self.dims_n = image_info["dims_n"]
+        self.dims_n = image_info["dims_n"] #
         self.scale_n = image_info["scale_n"]
         self.path = image_info["path"]
         self.offsets = offsets
@@ -69,6 +107,10 @@ class LifImage:
     def _get_item(self, n):
         """
         Gets specified item from the image set (private).
+
+        Note, this will likely be replaced by calls to get_plane in future
+        releases.
+
         Args:
             n (int): what item (n item in the block) to retrieve
 
@@ -125,31 +167,44 @@ class LifImage:
                 raise ValueError("Unknown bit-depth, please submit a bug report"
                                  " on Github")
 
-    def get_plane(self, display_dims=None, c=0, req_dims_dict=None):
+    def get_plane(self, display_dims=None, c=0, requested_dims=None):
         """
         Gets the specified frame from image.
 
         Args:
-            display_dims: default = inferred from the image
+            display_dims (tuple): Two value tuple (1, 2) specifying the
+                two dimension plane to return. This will default to the first
+                two dimensions in the LifFile, specified by LifFile.display_dims
             c (int): channel
-            req_dims_dict: numerical dims from the lif file ex {3: 0, 4: 1}
+            requested_dims (dict): Dictionary indicating the item to be returned,
+                as described by a numerical dictionary, ex: {3: 0, 4: 1}
 
         Returns:
             Pillow Image object
         """
-        # Todo: Warnings if display_dims is in the req_dims_dict_dict
-        if req_dims_dict is None:
-            req_dims_dict = {}
+        c = int(c)
+        if requested_dims is None:
+            requested_dims = {}
 
         if display_dims is None:
             display_dims = self.display_dims
+        elif type(display_dims) is not tuple or len(display_dims) != 2:
+            raise ValueError("display_dims must be a two value tuple")
+
+
+        if requested_dims.keys() in display_dims:
+            warnings.warn("One or more of the display_dims is in the "
+                          "requested_dims dictionary. Currently this has no "
+                          "effect. All data from the display_dims will be "
+                          "returned.")
+
         # Set all requested dims to 0:
         for i in range(1, 11):
-            req_dims_dict[i] = req_dims_dict.get(i, 0)
+            requested_dims[i] = int(requested_dims.get(i, 0))
 
         # Check if any of the dims exceeds what is in the image
         for i in self.dims_n.keys():
-            if (req_dims_dict[i] + 1) > self.dims_n.get(i, 0):
+            if (requested_dims[i] + 1) > self.dims_n.get(i, 0):
                 raise ValueError(f"Requested frame in dimension {str(i)} "
                                  f"doesn't exist")
 
@@ -159,15 +214,21 @@ class LifImage:
             image.seek(self.offsets[0])
             data = bytes()
 
+            # This code is here for future flexibility, to define a range to return
             display_x = range(0, self.dims_n[display_dims[0]])
             display_y = range(0, self.dims_n[display_dims[1]])
 
             dim_len = [self.dims_n[i] for i in self.dims_n.keys()]  # For calculations below
             key_idx = range(0, len(dim_len))  # For calculations below
+
+            # Note, this does not include the first dim, need to index i - 1 later
             precalc_dim_prod = tuple([reduce(lambda x, y: x * y, dim_len[:i])
                                       for i in key_idx if len(dim_len[:i]) > 0])
+
+            # Define the size of the plane to return
             total_len = self.dims_n[display_dims[0]] * self.dims_n[display_dims[1]]
             channel_offset = c * total_len
+
             # Speedup for the common case where the display_dims are the first two tims
             if display_dims == self.display_dims:
                 px_pos = 0
@@ -177,9 +238,10 @@ class LifImage:
                     remaining_dims = dim_len[:i]
 
                     if len(remaining_dims) > 0:
-                        px_pos += req_dims_dict[key] * precalc_dim_prod[i - 1] * self.channels
+                        px_pos += requested_dims[key] * precalc_dim_prod[i - 1] * self.channels
                     else:
-                        px_pos += req_dims_dict[key] * self.channels
+                        px_pos += requested_dims[key] * self.channels
+
                 if self.offsets[1] == 0:
                     data = data + b"\00" * total_len
                 else:
@@ -193,15 +255,15 @@ class LifImage:
                         px_pos = 0  # Reset position on every loop
                         px_pos += channel_offset
 
-                        req_dims_dict[display_dims[0]] = pos_x
-                        req_dims_dict[display_dims[1]] = pos_y
+                        requested_dims[display_dims[0]] = pos_x
+                        requested_dims[display_dims[1]] = pos_y
                         for key, i in zip(self.dims_n.keys(), key_idx):
-                            # Multiply requested n by the length of all dims < than n
+                            # Multiply requested n dims by the length of all dims below n in the hierarchy
                             remaining_dims = dim_len[:i]
                             if len(remaining_dims) > 0:
-                                px_pos += (c + 1) * req_dims_dict[key] * precalc_dim_prod[i - 1] * self.channels
+                                px_pos += (c + 1) * requested_dims[key] * precalc_dim_prod[i - 1] * self.channels
                             else:
-                                px_pos += (c + 1) * req_dims_dict[key] * self.channels
+                                px_pos += (c + 1) * requested_dims[key] * self.channels
                         if self.offsets[1] == 0:
                             data = data + b"\00" * 1
                         else:
@@ -439,6 +501,11 @@ class LifFile:
         >>>     for frame in image.get_iter_t():
         >>>         frame.image_info['name']
         >>>         # do stuff
+
+        >>> # For non-xy imaging experiments
+        >>> img_0 = new.get_image(0)
+        >>> for i in range(0, img_0.dims_n[4]):
+        >>>     plane = img_0.get_plane(requested_dims = {4: i})
     """
 
     def _recursive_image_find(self, tree, return_list=None, path=""):
