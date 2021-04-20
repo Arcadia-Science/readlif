@@ -57,16 +57,12 @@ class LifImage:
             Note, it is recommended to use `dims.t` instead. However, this will
             be kept for compatibility.
         scale (tuple): (scale_x, scale_y, scale_z, scale_t).
-<<<<<<< HEAD
 
             Conversion factor: px/µm for x, y and z; sec/image for t.
         scale_n (dict): {0: length, 1: length, 2: length...}.
 
             Conversion factor: px/µm for x, y and z; sec/image for t. Related
             to `dims_n` above.
-=======
-            Conversion factor: px/µm for x, y and z; sec/image for t.
->>>>>>> master
         bit_depth (tuple): A tuple of ints that indicates the bit depth of
             each channel in the image.
         mosaic_position (list): If the image is a mosaic (tiled), this contains
