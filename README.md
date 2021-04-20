@@ -1,7 +1,7 @@
 [![Documentation Status](https://readthedocs.org/projects/readlif/badge/?version=latest)](https://readlif.readthedocs.io/en/latest/?badge=latest)
 [![CI-Tests](https://github.com/nimne/readlif/workflows/CI-Tests/badge.svg)](https://github.com/nimne/readlif/actions?query=workflow%3ACI-Tests)
 
-readlif README file - DEVELOPMENT BRANCH
+readlif README file
 ===
 The readlif package was developed to be a fast, python only, reader for Leica Lif files. This is tested in Python 3.6 through 3.9.
 
@@ -92,6 +92,10 @@ This has only been tested on Lif files that were generated with Leica LAS X and 
 
 Changelog
 ======
+#### 0.6.1
+- Update readme
+
+
 #### 0.6.0
 - Added support for non-XY images with `get_plane()`. See docs for usage.
     - Note: Reading arbitrary planes (i.e. an XZ plane of an XY image) is not yet supported. 
