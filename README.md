@@ -1,7 +1,7 @@
 [![Documentation Status](https://readthedocs.org/projects/readlif/badge/?version=latest)](https://readlif.readthedocs.io/en/latest/?badge=latest)
 [![CI-Tests](https://github.com/nimne/readlif/workflows/CI-Tests/badge.svg)](https://github.com/nimne/readlif/actions?query=workflow%3ACI-Tests)
 
-readlif README file
+readlif README file - DEVELOPMENT BRANCH
 ===
 The readlif package was developed to be a fast, python only, reader for Leica Lif files. This is tested in Python 3.6 through 3.9.
 
@@ -30,6 +30,11 @@ this is not tested. If you have an example file, open an issue!
 
 There is not support for FlipX, FlipY and SwapXY metadata. If you need this, 
 please open an issue!
+
+Truncated images are returned as blank images.
+
+There is currently no support for returning arbitrary planes from `get_plane`
+by specifying `display_dims`. This is in progress.
 
 12- and 16-bit images
 ===
@@ -87,6 +92,10 @@ This has only been tested on Lif files that were generated with Leica LAS X and 
 
 Changelog
 ======
+#### 0.6.0
+- Added support for non-XY images with `get_plane()`. See docs for usage.
+    - Note: Reading arbitrary planes (i.e. an XZ plane of an XY image) is not yet supported. 
+
 #### 0.5.2
 - Bugfix: Fix error in mosaic parsing. `PosX` metadata was incorrectly read from `PosY`
 
