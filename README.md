@@ -33,6 +33,9 @@ please open an issue!
 
 Truncated images are returned as blank images.
 
+There is currently no support for returning arbitrary planes from `get_plane`
+by specifying `display_dims`. This is in progress.
+
 12- and 16-bit images
 ===
 As of 0.3.0, `reaflif` will now support images with bit depth greater than 8.
@@ -89,8 +92,17 @@ This has only been tested on Lif files that were generated with Leica LAS X and 
 
 Changelog
 ======
-#### Development branch
-- Adding new API and reader to handle arbitrary dimensions
+#### 0.6.0
+
+#### 0.5.2
+- Bugfix: Fix error in mosaic parsing. `PosX` metadata was incorrectly read from `PosY`
+
+#### 0.5.1
+- Bugfix: switch from `io.BufferedIOBase` to `io.IOBase`
+
+#### 0.5.0
+- Added support for loading files from buffers
+    - Thans to PR from @JacksonMaxfield
 
 #### 0.4.1
 - Fixed critical documentaiton error:
@@ -115,6 +127,7 @@ Changelog
 - Added support for 16-bit images, increased minimum Pillow version to 7.2.0.
     - New `LifImage` attribute `bit_depth` is a tuple of intigers descibing the bit
     depth for each channel in the image. 
+    - Thanks to @DirkRemmers for providing the example file.
 - Changed type from `str` to `int` for `dims` and `channels` in the `info` dictionary
 - Added python 3.9 to build testing
 

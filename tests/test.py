@@ -38,6 +38,20 @@ class TestReadMethods(unittest.TestCase):
             test = obj.get_frame(z=z, t=t, c=c)
             self.assertEqual(test.tobytes(), ref.tobytes())
 
+    def test_image_loading_from_buffer(self):
+        # order = c, z, t
+        test_array = [[0, 0, 0], [0, 2, 0], [0, 2, 2], [1, 0, 0]]
+        for i in test_array:
+            c = str(i[0])
+            z = str(i[1])
+            t = str(i[2])
+            ref = Image.open("./tests/tiff/c" + c + "z" + z + "t" + t + ".tif")
+
+            with open("./tests/xyzt_test.lif", "rb") as open_f:
+                obj = LifFile(open_f).get_image(0)
+                test = obj.get_frame(z=z, t=t, c=c)
+                self.assertEqual(test.tobytes(), ref.tobytes())
+
     def test_XML_header(self):
         etroot, test = get_xml("./tests/xyzt_test.lif")
         self.assertEqual(
@@ -101,8 +115,9 @@ class TestReadMethods(unittest.TestCase):
         # These tests are for images that are not public.
         # These images will be pulled from a protected web address
         # during CI testing.
-        if (os.environ.get('READLIF_TEST_DL_PASSWD') is not None
-                or os.path.exists("./tests/private/16bit.lif")):
+        if os.environ.get('READLIF_TEST_DL_PASSWD') is not None \
+                and os.environ.get('READLIF_TEST_DL_PASSWD') != "":
+
             downloadPrivateFile("16bit.lif")
             downloadPrivateFile("i1c0z2_16b.tif")
             # Note - readlif produces little endian files,
@@ -122,8 +137,10 @@ class TestReadMethods(unittest.TestCase):
         # These tests are for images that are not public.
         # These images will be pulled from a protected web address
         # during CI testing.
-        if (os.environ.get('READLIF_TEST_DL_PASSWD') is not None
-                or os.path.exists("./tests/private/i0c1m2z0.tif")):
+
+        if os.environ.get('READLIF_TEST_DL_PASSWD') is not None\
+                and os.environ.get('READLIF_TEST_DL_PASSWD') != "":
+
             downloadPrivateFile("tile_002.lif")
             downloadPrivateFile("i0c1m2z0.tif")
 

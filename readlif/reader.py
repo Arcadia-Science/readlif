@@ -4,6 +4,9 @@ from PIL import Image
 from collections import namedtuple
 import warnings
 from functools import reduce
+import os
+import io
+
 
 
 class LifImage:
@@ -43,7 +46,8 @@ class LifImage:
 
         name (str): image name
         offsets (list): Byte position offsets for each image.
-        filename (str): The name of the LIF file being read
+        filename (str, bytes, os.PathLike, io.IOBase): The name of the LIF file
+            being read
         channels (int): Number of channels in the image
         nz (int): number of 'z' frames
 
@@ -54,12 +58,16 @@ class LifImage:
             Note, it is recommended to use `dims.t` instead. However, this will
             be kept for compatibility.
         scale (tuple): (scale_x, scale_y, scale_z, scale_t).
+<<<<<<< HEAD
 
             Conversion factor: px/µm for x, y and z; sec/image for t.
         scale_n (dict): {0: length, 1: length, 2: length...}.
 
             Conversion factor: px/µm for x, y and z; sec/image for t. Related
             to `dims_n` above.
+=======
+            Conversion factor: px/µm for x, y and z; sec/image for t.
+>>>>>>> master
         bit_depth (tuple): A tuple of ints that indicates the bit depth of
             each channel in the image.
         mosaic_position (list): If the image is a mosaic (tiled), this contains
@@ -123,49 +131,56 @@ class LifImage:
 
         if n >= seek_distance:
             raise ValueError("Invalid item trying to be retrieved.")
-        with open(self.filename, "rb") as image:
 
-            # self.offsets[1] is the length of the image
-            if self.offsets[1] == 0:
-                # In the case of a blank image, we can calculate the length from
-                # the metadata in the LIF. When this is read by the parser,
-                # it is set to zero initially.
-                image_len = seek_distance * self.dims.x * self.dims.y
-            else:
-                image_len = int(self.offsets[1] / seek_distance)
+        if isinstance(self.filename, (str, bytes, os.PathLike)):
+            image = open(self.filename, "rb")
+        elif isinstance(self.filename, io.IOBase):
+            image = self.filename
+        else:
+            raise TypeError(
+                f"expected str, bytes, os.PathLike, or io.IOBase, "
+                f"not {type(self.filename)}"
+            )
 
-            # self.offsets[0] is the offset in the file
-            image.seek(self.offsets[0] + image_len * n)
+        # self.offsets[1] is the length of the image
+        if self.offsets[1] == 0:
+            # In the case of a blank image, we can calculate the length from
+            # the metadata in the LIF. When this is read by the parser,
+            # it is set to zero initially.
+            image_len = seek_distance * self.dims.x * self.dims.y
+        else:
+            image_len = int(self.offsets[1] / seek_distance)
 
-            # It is not necessary to read from disk for truncated files
+        # self.offsets[0] is the offset in the file
+        image.seek(self.offsets[0] + image_len * n)
 
-            # Todo: Update this for 16-bit images if there is a test file
-            if self.offsets[1] == 0:
-                data = b"\00" * image_len
-            else:
-                data = image.read(image_len)
+        # Todo: Update this for 16-bit images if there is a test file
+        if self.offsets[1] == 0:
+            data = b"\00" * image_len
+        else:
+            data = image.read(image_len)
 
-            # LIF files can be either 8-bit of 16-bit.
-            # Because of how the image is read in, all of the raw
-            # data is already in 'data', we just need to tell Pillow
-            # how to set the bit depth
-            # 'L' is 8-bit, 'I;16' is 16 bit
+        # LIF files can be either 8-bit of 16-bit.
+        # Because of how the image is read in, all of the raw
+        # data is already in 'data', we just need to tell Pillow
+        # how to set the bit depth
+        # 'L' is 8-bit, 'I;16' is 16 bit
 
-            # len(data) is the number of bytes (8-bit)
-            # However, it is safer to let the lif file tell us the resolution
-            if self.bit_depth[0] == 8:
-                return Image.frombytes("L",
-                                       (self.dims_n[self.display_dims[0]],
-                                        self.dims_n[self.display_dims[1]]),
-                                       data)
-            elif self.bit_depth[0] <= 16:
-                return Image.frombytes("I;16",
-                                       (self.dims_n[self.display_dims[0]],
-                                        self.dims_n[self.display_dims[1]]),
-                                       data)
-            else:
-                raise ValueError("Unknown bit-depth, please submit a bug report"
-                                 " on Github")
+        # len(data) is the number of bytes (8-bit)
+        # However, it is safer to let the lif file tell us the resolution
+        if self.bit_depth[0] == 8:
+            return Image.frombytes("L",
+                                   (self.dims_n[self.display_dims[0]],
+                                    self.dims_n[self.display_dims[1]]),
+                                   data)
+        elif self.bit_depth[0] <= 16:
+            return Image.frombytes("I;16",
+                                   (self.dims_n[self.display_dims[0]],
+                                    self.dims_n[self.display_dims[1]]),
+                                   data)
+        else:
+            raise ValueError("Unknown bit-depth, please submit a bug report"
+                             " on Github")
 
     def get_plane(self, display_dims=None, c=0, requested_dims=None):
         """
@@ -209,6 +224,16 @@ class LifImage:
             if (requested_dims[i] + 1) > self.dims_n.get(i, 0):
                 raise ValueError(f"Requested frame in dimension {str(i)} "
                                  f"doesn't exist")
+
+        if isinstance(self.filename, (str, bytes, os.PathLike)):
+            image = open(self.filename, "rb")
+        elif isinstance(self.filename, io.IOBase):
+            image = self.filename
+        else:
+            raise TypeError(
+                f"expected str, bytes, os.PathLike, or io.IOBase, "
+                f"not {type(self.filename)}"
+            )
 
         # Read the specified data into the buffer
         with open(self.filename, "rb") as image:
@@ -481,7 +506,7 @@ def _get_len(handle):
 
 class LifFile:
     """
-    Given a path to a lif file, returns objects containing
+    Given a path or buffer to a lif file, returns objects containing
     the image and data.
 
     This is based on the java openmicroscopy bioformats lif reading code
@@ -612,7 +637,7 @@ class LifFile:
                     for tile in item.findall("./Data/Image/Attachment/Tile"):
                         FieldX = int(tile.attrib["FieldX"])
                         FieldY = int(tile.attrib["FieldY"])
-                        PosX = float(tile.attrib["PosY"])
+                        PosX = float(tile.attrib["PosX"])
                         PosY = float(tile.attrib["PosY"])
 
                         m_pos_list.append((FieldX, FieldY, PosX, PosY))
@@ -639,7 +664,16 @@ class LifFile:
 
     def __init__(self, filename):
         self.filename = filename
-        f = open(filename, "rb")
+
+        if isinstance(filename, (str, bytes, os.PathLike)):
+            f = open(filename, "rb")
+        elif isinstance(filename, io.IOBase):
+            f = filename
+        else:
+            raise TypeError(
+                f"expected str, bytes, os.PathLike, or io.IOBase, "
+                f"not {type(filename)}"
+            )
         f_len = _get_len(f)
 
         _check_magic(f)  # read 4 byte, check for magic bytes
@@ -687,7 +721,8 @@ class LifFile:
                 else:
                     raise
 
-        f.close()
+        if isinstance(filename, (str, bytes, os.PathLike)):
+            f.close()
 
         self.image_list = self._recursive_image_find(self.xml_root)
 
