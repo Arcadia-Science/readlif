@@ -9,6 +9,7 @@ docs/_build/
 .idea
 *.iml
 
+*.sync
 #Ignore these hidden files from Mac OS X
 .DS_Store
 
