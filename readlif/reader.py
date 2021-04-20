@@ -330,7 +330,7 @@ class LifImage:
         """
         if self.display_dims != (1, 2):
             raise ValueError("Atypical imaging experiment, please use "
-                             "get_extended_frame() instead of get_frame()")
+                             "get_plane() instead of get_frame()")
 
         t = int(t)
         c = int(c)
