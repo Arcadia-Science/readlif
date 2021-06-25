@@ -582,9 +582,15 @@ class LifFile:
                     try:
                         len_n = float(d.attrib["Length"])
 
-                        # Convert from meters to micrometers
-                        scale_dict[dim_n] = ((int(dims_dict[dim_n]) - 1)
-                                             / (float(len_n) * 10**6))
+                        # other conversion factor for times needed
+                        # returns scale in frames per second
+                        if dim_n == 4: 
+                            scale_dict[dim_n] = ((int(dims_dict[dim_n])-1)
+                                                 / float(len_n))                            
+                        # Convert from meters to micrometers  
+                        else:
+                            scale_dict[dim_n] = (int(dims_dict[dim_n])
+                                                 / (float(len_n) * 10**6))
                     except (AttributeError, ZeroDivisionError):
                         scale_dict[dim_n] = None
 
