@@ -566,7 +566,7 @@ class LifFile:
                 try:
                     dim1 = int(dims[0].attrib["DimID"])
                     dim2 = int(dims[1].attrib["DimID"])
-                except AttributeError:
+                except (AttributeError, IndexError):
                     dim1 = 1
                     dim2 = 2
 
