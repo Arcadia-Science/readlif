@@ -58,10 +58,10 @@ class LifImage:
             be kept for compatibility.
         scale (tuple): (scale_x, scale_y, scale_z, scale_t).
 
-            Conversion factor: px/µm for x, y and z; sec/image for t.
-        scale_n (dict): {0: length, 1: length, 2: length...}.
+            Conversion factor: px/µm for x, y and z; images/sec for t.
+        scale_n (dict): {1: scale_x, 2: scale_y, 3: scale_z, 4: scale_t}.
 
-            Conversion factor: px/µm for x, y and z; sec/image for t. Related
+            Conversion factor: px/µm for x, y and z; images/sec for t. Related
             to `dims_n` above.
         bit_depth (tuple): A tuple of ints that indicates the bit depth of
             each channel in the image.
