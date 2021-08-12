@@ -58,10 +58,10 @@ class LifImage:
             be kept for compatibility.
         scale (tuple): (scale_x, scale_y, scale_z, scale_t).
 
-            Conversion factor: px/µm for x, y and z; sec/image for t.
-        scale_n (dict): {0: length, 1: length, 2: length...}.
+            Conversion factor: px/µm for x, y and z; images/sec for t.
+        scale_n (dict): {1: scale_x, 2: scale_y, 3: scale_z, 4: scale_t}.
 
-            Conversion factor: px/µm for x, y and z; sec/image for t. Related
+            Conversion factor: px/µm for x, y and z; images/sec for t. Related
             to `dims_n` above.
         bit_depth (tuple): A tuple of ints that indicates the bit depth of
             each channel in the image.
@@ -566,7 +566,7 @@ class LifFile:
                 try:
                     dim1 = int(dims[0].attrib["DimID"])
                     dim2 = int(dims[1].attrib["DimID"])
-                except AttributeError:
+                except (AttributeError, IndexError):
                     dim1 = 1
                     dim2 = 2
 
@@ -582,9 +582,15 @@ class LifFile:
                     try:
                         len_n = float(d.attrib["Length"])
 
-                        # Convert from meters to micrometers
-                        scale_dict[dim_n] = ((int(dims_dict[dim_n]) - 1)
-                                             / (float(len_n) * 10**6))
+                        # other conversion factor for times needed
+                        # returns scale in frames per second
+                        if dim_n == 4: 
+                            scale_dict[dim_n] = ((int(dims_dict[dim_n])-1)
+                                                 / float(len_n))                            
+                        # Convert from meters to micrometers  
+                        else:
+                            scale_dict[dim_n] = (int(dims_dict[dim_n])
+                                                 / (float(len_n) * 10**6))
                     except (AttributeError, ZeroDivisionError):
                         scale_dict[dim_n] = None
 
