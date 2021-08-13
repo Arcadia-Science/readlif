@@ -92,6 +92,11 @@ This has only been tested on Lif files that were generated with Leica LAS X and 
 
 Changelog
 ======
+#### 0.6.2
+- Fixed bug where the time and image scale were calculated incorrectly
+- Clarified scaling documentation documentation
+
+
 #### 0.6.1
 - Update readme
 
