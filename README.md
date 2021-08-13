@@ -94,7 +94,7 @@ Changelog
 ======
 #### 0.6.2
 - Fixed bug where the time and image scale were calculated incorrectly
-- Clarified scaling documentation documentation
+- Clarified scaling documentation
 
 
 #### 0.6.1
