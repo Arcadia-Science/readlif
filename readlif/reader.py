@@ -58,7 +58,8 @@ class LifImage:
             be kept for compatibility.
         scale (tuple): (scale_x, scale_y, scale_z, scale_t).
 
-            Conversion factor: px/µm for x, y and z; images/sec for t.
+            Conversion factor: px/µm for x, y and z; images/frame for t. For
+            time, this is the duration for the entire image acquisition.
         scale_n (dict): {1: scale_x, 2: scale_y, 3: scale_z, 4: scale_t}.
 
             Conversion factor: px/µm for x, y and z; images/sec for t. Related
@@ -584,12 +585,12 @@ class LifFile:
 
                         # other conversion factor for times needed
                         # returns scale in frames per second
-                        if dim_n == 4: 
-                            scale_dict[dim_n] = ((int(dims_dict[dim_n])-1)
-                                                 / float(len_n))                            
-                        # Convert from meters to micrometers  
+                        if dim_n == 4:
+                            scale_dict[dim_n] = ((int(dims_dict[dim_n]) - 1)
+                                                 / float(len_n))
+                        # Convert from meters to micrometers
                         else:
-                            scale_dict[dim_n] = (int(dims_dict[dim_n])
+                            scale_dict[dim_n] = ((int(dims_dict[dim_n]) - 1)
                                                  / (float(len_n) * 10**6))
                     except (AttributeError, ZeroDivisionError):
                         scale_dict[dim_n] = None
