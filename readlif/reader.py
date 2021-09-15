@@ -532,6 +532,28 @@ class LifFile:
         >>>     plane = img_0.get_plane(requested_dims = {4: i})
     """
 
+    def _recursive_memblock_is_image(self, tree, return_list=None):
+        """Creates list of TRUE or FALSE if memblock is image"""
+
+        if return_list is None:
+            return_list = []
+
+        children = tree.findall("./Children/Element")
+        if len(children) < 1:  # Fix for 'first round'
+            children = tree.findall("./Element")
+        for item in children:
+            has_sub_children = len(item.findall("./Children/Element/Data/Image/ImageDescription/Dimensions")) > 0
+            is_image = (
+                len(item.findall("./Data/Image/ImageDescription/Dimensions")) > 0
+            )
+
+            if has_sub_children:
+                self._recursive_memblock_is_image(item, return_list)
+
+            return_list.append(is_image)
+
+        return return_list
+
     def _recursive_image_find(self, tree, return_list=None, path=""):
         """Creates list of images by parsing the XML header recursively"""
 
@@ -547,7 +569,7 @@ class LifFile:
                 appended_path = folder_name
             else:
                 appended_path = path + "/" + folder_name
-            has_sub_children = len(item.findall("./Children/Element")) > 0
+            has_sub_children = len(item.findall("./Children/Element/Data/Image/ImageDescription/Dimensions")) > 0
             is_image = (
                 len(item.findall("./Data/Image/ImageDescription/Dimensions")) > 0
             )
@@ -737,6 +759,12 @@ class LifFile:
                 # append an offset with length zero.
                 # This will be taken care of later when the images are retrieved.
                 self.offsets.append((truncation_begin, 0))
+
+        # Fix for new LASX version
+        is_image_bool_list = self._recursive_memblock_is_image(self.xml_root)
+        if False in is_image_bool_list:
+            from itertools import compress
+            self.offsets = list(compress(self.offsets, is_image_bool_list))
 
         if len(self.image_list) != len(self.offsets) and not truncated:
             raise ValueError("Number of images is not equal to number of "
