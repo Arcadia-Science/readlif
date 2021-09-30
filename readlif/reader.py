@@ -553,15 +553,18 @@ class LifFile:
         if len(children) < 1:  # Fix for 'first round'
             children = tree.findall("./Element")
         for item in children:
-            has_sub_children = len(item.findall("./Children/Element/Data/Image/ImageDescription/Dimensions")) > 0
+            has_sub_children = len(item.findall("./Children/Element/Data")) > 0
             is_image = (
-                len(item.findall("./Data/Image/ImageDescription/Dimensions")) > 0
+                len(item.findall("./Data/Image")) > 0
             )
+
+            # Check to see if the Memblock idnetified in the XML actually has a size,
+            # otherwise it won't have an offset
+            if int(item.find("./Memory").attrib["Size"]) > 0:
+                return_list.append(is_image)
 
             if has_sub_children:
                 self._recursive_memblock_is_image(item, return_list)
-
-            return_list.append(is_image)
 
         return return_list
 
@@ -576,19 +579,19 @@ class LifFile:
             children = tree.findall("./Element")
         for item in children:
             folder_name = item.attrib["Name"]
+            # Grab the .lif filename name on the first execution
             if path == "":
                 appended_path = folder_name
             else:
                 appended_path = path + "/" + folder_name
-            has_sub_children = len(item.findall("./Children/Element/Data/Image/ImageDescription/Dimensions")) > 0
+            # This finds empty folders
+            has_sub_children = len(item.findall("./Children/Element/Data")) > 0
+
             is_image = (
-                len(item.findall("./Data/Image/ImageDescription/Dimensions")) > 0
+                len(item.findall("./Data/Image")) > 0
             )
 
-            if has_sub_children:
-                self._recursive_image_find(item, return_list, appended_path)
-
-            elif is_image:
+            if is_image:
                 # If additional XML data extraction is needed, add it here.
 
                 # Find the dimensions, get them in order
@@ -711,6 +714,10 @@ class LifFile:
 
                 return_list.append(data_dict)
 
+            # An image can have sub_children, it is not mutually exclusive
+            if has_sub_children:
+                self._recursive_image_find(item, return_list, appended_path)
+
         return return_list
 
     def __init__(self, filename):
@@ -788,10 +795,11 @@ class LifFile:
                 self.offsets.append((truncation_begin, 0))
 
         # Fix for new LASX version
-        is_image_bool_list = self._recursive_memblock_is_image(self.xml_root)
-        if False in is_image_bool_list:
-            from itertools import compress
-            self.offsets = list(compress(self.offsets, is_image_bool_list))
+        if len(self.offsets) - len(self.image_list) > 0:
+            is_image_bool_list = self._recursive_memblock_is_image(self.xml_root)
+            if False in is_image_bool_list:
+                from itertools import compress
+                self.offsets = list(compress(self.offsets, is_image_bool_list))
 
         if len(self.image_list) != len(self.offsets) and not truncated:
             raise ValueError("Number of images is not equal to number of "

@@ -92,6 +92,11 @@ This has only been tested on Lif files that were generated with Leica LAS X and 
 
 Changelog
 ======
+#### 0.6.4
+- Fixed bug and incompatibility in 0.6.3
+- Added preliminary fix for images captured with stage navigator
+
+
 #### 0.6.3
 - Added support for updated LasX with additional data in the Lif file
 - Changed the way file names are assigned, now includes folder path

@@ -190,6 +190,10 @@ class TestReadMethods(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             obj.get_plane(display_dims=(1, 5), c=0, requested_dims={2: 31})
 
+    def test_new_lasx(self):
+        obj = LifFile("./tests/new_lasx.lif")
+        self.assertEqual(len(obj.image_list), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
