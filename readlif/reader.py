@@ -92,6 +92,7 @@ class LifImage:
         self.bit_depth = image_info["bit_depth"]
         self.mosaic_position = image_info["mosaic_position"]
         self.n_mosaic = int(image_info["dims"].m)
+        self.channel_as_second_dim = bool(image_info["channel_as_second_dim"])
 
     def __repr__(self):
         return repr('LifImage object with dimensions: ' + str(self.dims))
@@ -181,6 +182,9 @@ class LifImage:
     def get_plane(self, display_dims=None, c=0, requested_dims=None):
         """
         Gets the specified frame from image.
+
+        Known issue: LASX Navigator saves channel as the second channel, this reader
+        will fail in that case.
 
         Args:
             display_dims (tuple): Two value tuple (1, 2) specifying the
@@ -351,10 +355,17 @@ class LifImage:
         t_offset = self.channels * self.nz
         t_requested = t_offset * t
 
-        z_offset = self.channels
-        z_requested = z_offset * z
+        # Hack-y fix for channel as the second dim
+        if self.channel_as_second_dim:
+            z_requested = z
 
-        c_requested = c
+            c_offset = self.nz
+            c_requested = c * c_offset
+        else:
+            z_offset = self.channels
+            z_requested = z_offset * z
+
+            c_requested = c
 
         m_offset = self.channels * self.nz * self.nt
         m_requested = m_offset * m
@@ -617,6 +628,21 @@ class LifFile:
                     except (AttributeError, ZeroDivisionError):
                         scale_dict[dim_n] = None
 
+                # Hack-y fix to determine if the channel dimension cones after Z
+                # Check if there even is a z dimension
+                if 3 in dims_dict.keys() and len(dims) > 2:
+                    channels = item.findall("./Data/Image/ImageDescription/"
+                                            "Channels/ChannelDescription")
+                    channel_max = sum([int(c.attrib["BytesInc"]) for c in channels])
+
+                    bytes_inc_channel = channel_max
+                    cytes_inc_z = int(dims[2].attrib["BytesInc"])
+
+                    channel_as_second_dim = bytes_inc_channel > cytes_inc_z
+
+                else:
+                    channel_as_second_dim = False
+
                 # This code block is to maintain compatibility with programs
                 # written before 0.5.0
 
@@ -679,6 +705,7 @@ class LifFile:
                     "scale": (scale_x, scale_y, scale_z, scale_t),
                     "bit_depth": bit_depth,
                     "mosaic_position": m_pos_list,
+                    "channel_as_second_dim": channel_as_second_dim
                     # "metadata_xml": item
                 }
 
