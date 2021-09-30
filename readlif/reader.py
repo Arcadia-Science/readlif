@@ -674,12 +674,12 @@ class LifFile:
                     "dims_n": dims_dict,
                     "scale_n": scale_dict,
                     "path": str(path + "/"),
-                    "name": item.attrib["Name"],
+                    "name": '/'.join((str(path + "/") + item.attrib["Name"]).split("/")[1:]),
                     "channels": n_channels,
                     "scale": (scale_x, scale_y, scale_z, scale_t),
                     "bit_depth": bit_depth,
                     "mosaic_position": m_pos_list,
-                    # "metadata_xmlroot": metadata_xmlroot
+                    # "metadata_xml": item
                 }
 
                 return_list.append(data_dict)
