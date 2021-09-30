@@ -94,7 +94,8 @@ Changelog
 ======
 #### 0.6.3
 - Added support for updated LasX with additional data in the Lif file
-
+- Changed the way file names are assigned, now includes folder path
+  - This fix is intended to clarify imaging sets with many duplicate names
 
 #### 0.6.2
 - Fixed bug where the time and image scale were calculated incorrectly
