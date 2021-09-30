@@ -92,6 +92,7 @@ class LifImage:
         self.bit_depth = image_info["bit_depth"]
         self.mosaic_position = image_info["mosaic_position"]
         self.n_mosaic = int(image_info["dims"].m)
+        self.channel_as_second_dim = bool(image_info["channel_as_second_dim"])
 
     def __repr__(self):
         return repr('LifImage object with dimensions: ' + str(self.dims))
@@ -181,6 +182,9 @@ class LifImage:
     def get_plane(self, display_dims=None, c=0, requested_dims=None):
         """
         Gets the specified frame from image.
+
+        Known issue: LASX Navigator saves channel as the second channel, this reader
+        will fail in that case.
 
         Args:
             display_dims (tuple): Two value tuple (1, 2) specifying the
@@ -351,10 +355,17 @@ class LifImage:
         t_offset = self.channels * self.nz
         t_requested = t_offset * t
 
-        z_offset = self.channels
-        z_requested = z_offset * z
+        # Hack-y fix for channel as the second dim
+        if self.channel_as_second_dim:
+            z_requested = z
 
-        c_requested = c
+            c_offset = self.nz
+            c_requested = c * c_offset
+        else:
+            z_offset = self.channels
+            z_requested = z_offset * z
+
+            c_requested = c
 
         m_offset = self.channels * self.nz * self.nt
         m_requested = m_offset * m
@@ -542,15 +553,18 @@ class LifFile:
         if len(children) < 1:  # Fix for 'first round'
             children = tree.findall("./Element")
         for item in children:
-            has_sub_children = len(item.findall("./Children/Element/Data/Image/ImageDescription/Dimensions")) > 0
+            has_sub_children = len(item.findall("./Children/Element/Data")) > 0
             is_image = (
-                len(item.findall("./Data/Image/ImageDescription/Dimensions")) > 0
+                len(item.findall("./Data/Image")) > 0
             )
+
+            # Check to see if the Memblock idnetified in the XML actually has a size,
+            # otherwise it won't have an offset
+            if int(item.find("./Memory").attrib["Size"]) > 0:
+                return_list.append(is_image)
 
             if has_sub_children:
                 self._recursive_memblock_is_image(item, return_list)
-
-            return_list.append(is_image)
 
         return return_list
 
@@ -565,19 +579,19 @@ class LifFile:
             children = tree.findall("./Element")
         for item in children:
             folder_name = item.attrib["Name"]
+            # Grab the .lif filename name on the first execution
             if path == "":
                 appended_path = folder_name
             else:
                 appended_path = path + "/" + folder_name
-            has_sub_children = len(item.findall("./Children/Element/Data/Image/ImageDescription/Dimensions")) > 0
+            # This finds empty folders
+            has_sub_children = len(item.findall("./Children/Element/Data")) > 0
+
             is_image = (
-                len(item.findall("./Data/Image/ImageDescription/Dimensions")) > 0
+                len(item.findall("./Data/Image")) > 0
             )
 
-            if has_sub_children:
-                self._recursive_image_find(item, return_list, appended_path)
-
-            elif is_image:
+            if is_image:
                 # If additional XML data extraction is needed, add it here.
 
                 # Find the dimensions, get them in order
@@ -616,6 +630,21 @@ class LifFile:
                                                  / (float(len_n) * 10**6))
                     except (AttributeError, ZeroDivisionError):
                         scale_dict[dim_n] = None
+
+                # Hack-y fix to determine if the channel dimension cones after Z
+                # Check if there even is a z dimension
+                if 3 in dims_dict.keys() and len(dims) > 2:
+                    channels = item.findall("./Data/Image/ImageDescription/"
+                                            "Channels/ChannelDescription")
+                    channel_max = sum([int(c.attrib["BytesInc"]) for c in channels])
+
+                    bytes_inc_channel = channel_max
+                    cytes_inc_z = int(dims[2].attrib["BytesInc"])
+
+                    channel_as_second_dim = bytes_inc_channel > cytes_inc_z
+
+                else:
+                    channel_as_second_dim = False
 
                 # This code block is to maintain compatibility with programs
                 # written before 0.5.0
@@ -679,10 +708,15 @@ class LifFile:
                     "scale": (scale_x, scale_y, scale_z, scale_t),
                     "bit_depth": bit_depth,
                     "mosaic_position": m_pos_list,
+                    "channel_as_second_dim": channel_as_second_dim
                     # "metadata_xml": item
                 }
 
                 return_list.append(data_dict)
+
+            # An image can have sub_children, it is not mutually exclusive
+            if has_sub_children:
+                self._recursive_image_find(item, return_list, appended_path)
 
         return return_list
 
@@ -761,10 +795,11 @@ class LifFile:
                 self.offsets.append((truncation_begin, 0))
 
         # Fix for new LASX version
-        is_image_bool_list = self._recursive_memblock_is_image(self.xml_root)
-        if False in is_image_bool_list:
-            from itertools import compress
-            self.offsets = list(compress(self.offsets, is_image_bool_list))
+        if len(self.offsets) - len(self.image_list) > 0:
+            is_image_bool_list = self._recursive_memblock_is_image(self.xml_root)
+            if False in is_image_bool_list:
+                from itertools import compress
+                self.offsets = list(compress(self.offsets, is_image_bool_list))
 
         if len(self.image_list) != len(self.offsets) and not truncated:
             raise ValueError("Number of images is not equal to number of "
