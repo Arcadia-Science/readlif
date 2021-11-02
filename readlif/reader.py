@@ -93,6 +93,7 @@ class LifImage:
         self.mosaic_position = image_info["mosaic_position"]
         self.n_mosaic = int(image_info["dims"].m)
         self.channel_as_second_dim = bool(image_info["channel_as_second_dim"])
+        self.settings = image_info["settings"]
 
     def __repr__(self):
         return repr('LifImage object with dimensions: ' + str(self.dims))
@@ -697,6 +698,12 @@ class LifFile:
 
                 Dims = namedtuple("Dims", "x y z t m")
 
+                settings = item.findall("./Data/Image/Attachment/ATLConfocalSettingDefinition")
+                if len(settings) > 0:
+                    settings = settings[0].attrib
+                else:
+                    settings = {}
+
                 data_dict = {
                     "dims": Dims(dim_x, dim_y, dim_z, dim_t, dim_m),
                     "display_dims": (dim1, dim2),
@@ -708,7 +715,8 @@ class LifFile:
                     "scale": (scale_x, scale_y, scale_z, scale_t),
                     "bit_depth": bit_depth,
                     "mosaic_position": m_pos_list,
-                    "channel_as_second_dim": channel_as_second_dim
+                    "channel_as_second_dim": channel_as_second_dim,
+                    "settings": settings
                     # "metadata_xml": item
                 }
 
