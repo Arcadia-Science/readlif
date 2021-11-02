@@ -69,6 +69,8 @@ class LifImage:
         mosaic_position (list): If the image is a mosaic (tiled), this contains
             a list of tuples with four values: `(FieldX, FieldY, PosX, PosY)`.
             The length of this list is equal to the number of tiles.
+        settings (dict): ATLConfocalSettingDefinition (if it exists), which contains
+            values like NumericalAperture and Magnification.
         info (dict): Direct access to data dict from LifFile, this is most
             useful for debugging. These are values pulled from the Leica XML.
 
