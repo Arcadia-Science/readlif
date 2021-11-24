@@ -194,6 +194,10 @@ class TestReadMethods(unittest.TestCase):
         obj = LifFile("./tests/new_lasx.lif")
         self.assertEqual(len(obj.image_list), 1)
 
+    def test_settings(self):
+        obj = LifFile("./tests/testdata_2channel_xz.lif").get_image(0)
+        self.assertEqual(obj.settings["ObjectiveNumber"], '11506353')
+
 
 if __name__ == "__main__":
     unittest.main()
