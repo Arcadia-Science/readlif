@@ -92,6 +92,11 @@ This has only been tested on Lif files that were generated with Leica LAS X and 
 
 Changelog
 ======
+#### 0.6.5
+- Added a new attribute `settings` to `LifImage` which contains useful capture settings
+  - Thanks to PR from @tmtenbrink
+
+
 #### 0.6.4
 - Fixed bug and incompatibility in 0.6.3
 - Added preliminary fix for images captured with stage navigator
