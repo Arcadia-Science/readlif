@@ -639,7 +639,7 @@ class LifFile:
                 if 3 in dims_dict.keys() and len(dims) > 2:
                     channels = item.findall("./Data/Image/ImageDescription/"
                                             "Channels/ChannelDescription")
-                    channel_max = sum([int(c.attrib["BytesInc"]) for c in channels])
+                    channel_max = max([int(c.attrib["BytesInc"]) for c in channels])
 
                     bytes_inc_channel = channel_max
                     cytes_inc_z = int(dims[2].attrib["BytesInc"])
