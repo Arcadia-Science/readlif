@@ -644,7 +644,7 @@ class LifFile:
                     bytes_inc_channel = channel_max
                     cytes_inc_z = int(dims[2].attrib["BytesInc"])
 
-                    channel_as_second_dim = bytes_inc_channel > cytes_inc_z
+                    channel_as_second_dim = bytes_inc_channel < cytes_inc_z
 
                 else:
                     channel_as_second_dim = False
