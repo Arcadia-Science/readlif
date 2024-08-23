@@ -238,8 +238,6 @@ class LifImage:
                 f"not {type(self.filename)}"
             )
 
-        bytes_per_pixel = self.bit_depth[0] // 8
-
         # Read the specified data into the buffer
         with open(self.filename, "rb") as image:
             # Start at the beginning of the specified image
@@ -258,7 +256,7 @@ class LifImage:
                                       for i in key_idx if len(dim_len[:i]) > 0])
 
             # Define the size of the plane to return
-            total_len = self.dims_n[display_dims[0]] * self.dims_n[display_dims[1]] * bytes_per_pixel
+            total_len = self.dims_n[display_dims[0]] * self.dims_n[display_dims[1]]
             channel_offset = c * total_len
 
             # Speedup for the common case where the display_dims are the first two dims
@@ -277,7 +275,7 @@ class LifImage:
                 if self.offsets[1] == 0:
                     data = data + b"\00" * total_len
                 else:
-                    image.seek(self.offsets[0] + px_pos * bytes_per_pixel)
+                    image.seek(self.offsets[0] + px_pos)
                     data = data + image.read(total_len)
 
             # Handle the less common case, where the display_dims are arbitrary
