@@ -1,5 +1,0 @@
-[flake8]
-# Ignoring W503, because it is difficult to make pretty equations
-ignore = D203, W503
-exclude = .git,__pycache__,docs/source/conf.py,old,build,dist,.tox
-max-line-length = 120

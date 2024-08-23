@@ -1,0 +1,39 @@
+line-length = 100
+indent-width = 4
+
+extend-include = ["*.ipynb"]
+
+[format]
+# Like Black, use double quotes, indent with spaces, and respect trailing commas.
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[lint]
+ignore = []
+unfixable = []
+fixable = ["ALL"]
+
+select = [
+    # flake8-bugbear
+    "B",
+    # pycodestyle error
+    "E",
+    # pyflakes
+    "F",
+    # isort
+    "I",
+    # pyupgrade
+    "UP",
+    # pycodestyle warning
+    "W",
+]
+
+[lint.per-file-ignores]
+# Ignore star and unused imports.
+"__init__.py" = ["F403", "F405"]
+
+[lint.isort]
+order-by-type = true
+no-lines-before = ["future", "standard-library"]
