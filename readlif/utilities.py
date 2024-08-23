@@ -1,5 +1,6 @@
-from readlif.reader import _check_magic, _check_mem, _read_int
 import xml.etree.ElementTree as ET
+
+from readlif.reader import _check_magic, _check_mem, _read_int
 
 
 def get_xml(filename):

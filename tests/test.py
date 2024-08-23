@@ -1,15 +1,18 @@
-import unittest
 import os
+import unittest
+
+from PIL import Image
+
 from readlif.reader import LifFile
 from readlif.utilities import get_xml
-from PIL import Image
 
 # Todo: Test a truncated image
 
 
 def downloadPrivateFile(filename):
     import requests
-    pwd = os.environ.get('READLIF_TEST_DL_PASSWD')
+
+    pwd = os.environ.get("READLIF_TEST_DL_PASSWD")
 
     dl_url = "https://cdn.nimne.com/readlif/" + str(filename)
 
@@ -17,7 +20,7 @@ def downloadPrivateFile(filename):
         os.makedirs("./tests/private/")
 
     if not os.path.exists("./tests/private/" + filename):
-        with requests.get(dl_url, stream=True, auth=('readlif', pwd)) as r:
+        with requests.get(dl_url, stream=True, auth=("readlif", pwd)) as r:
             r.raise_for_status()
             with open("./tests/private/" + filename, "wb") as f:
                 for chunk in r.iter_content(chunk_size=8192):
@@ -54,18 +57,17 @@ class TestReadMethods(unittest.TestCase):
 
     def test_XML_header(self):
         etroot, test = get_xml("./tests/xyzt_test.lif")
-        self.assertEqual(
-            test[:50], '<LMSDataContainerHeader Version="2"><Element Name='
-        )
+        self.assertEqual(test[:50], '<LMSDataContainerHeader Version="2"><Element Name=')
 
     def test_iterators(self):
         images = [i for i in LifFile("./tests/xyzt_test.lif").get_iter_image()]
         self.assertEqual(len(images), 1)
 
         obj = LifFile("./tests/xyzt_test.lif").get_image(0)
-        self.assertEqual(repr(obj), "'LifImage object with "
-                                    "dimensions: "
-                                    "Dims(x=1024, y=1024, z=3, t=3, m=1)'")
+        self.assertEqual(
+            repr(obj),
+            "'LifImage object with " "dimensions: " "Dims(x=1024, y=1024, z=3, t=3, m=1)'",
+        )
 
         c_list = [i for i in obj.get_iter_c()]
         self.assertEqual(len(c_list), 2)
@@ -115,9 +117,10 @@ class TestReadMethods(unittest.TestCase):
         # These tests are for images that are not public.
         # These images will be pulled from a protected web address
         # during CI testing.
-        if os.environ.get('READLIF_TEST_DL_PASSWD') is not None \
-                and os.environ.get('READLIF_TEST_DL_PASSWD') != "":
-
+        if (
+            os.environ.get("READLIF_TEST_DL_PASSWD") is not None
+            and os.environ.get("READLIF_TEST_DL_PASSWD") != ""
+        ):
             downloadPrivateFile("16bit.lif")
             downloadPrivateFile("i1c0z2_16b.tif")
             # Note - readlif produces little endian files,
@@ -138,9 +141,10 @@ class TestReadMethods(unittest.TestCase):
         # These images will be pulled from a protected web address
         # during CI testing.
 
-        if os.environ.get('READLIF_TEST_DL_PASSWD') is not None\
-                and os.environ.get('READLIF_TEST_DL_PASSWD') != "":
-
+        if (
+            os.environ.get("READLIF_TEST_DL_PASSWD") is not None
+            and os.environ.get("READLIF_TEST_DL_PASSWD") != ""
+        ):
             downloadPrivateFile("tile_002.lif")
             downloadPrivateFile("i0c1m2z0.tif")
 
@@ -196,7 +200,7 @@ class TestReadMethods(unittest.TestCase):
 
     def test_settings(self):
         obj = LifFile("./tests/testdata_2channel_xz.lif").get_image(0)
-        self.assertEqual(obj.settings["ObjectiveNumber"], '11506353')
+        self.assertEqual(obj.settings["ObjectiveNumber"], "11506353")
 
 
 if __name__ == "__main__":
