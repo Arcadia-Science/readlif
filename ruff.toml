@@ -13,6 +13,7 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [lint]
+# TODO: revisit this ignored rule ("No explicit `stacklevel` keyword argument found").
 ignore = ["B028"]
 unfixable = []
 fixable = ["ALL"]
