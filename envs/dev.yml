@@ -1,0 +1,9 @@
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - poetry=1.8.2
+  - python=3.12.0
+  pip:
+    - ruff==0.6.2
