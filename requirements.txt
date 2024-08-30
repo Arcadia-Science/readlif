@@ -1,2 +1,0 @@
-# Requirements for running the program
-Pillow >= 7.2.0

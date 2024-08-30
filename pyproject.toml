@@ -1,0 +1,82 @@
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+strict = false
+vcs = "git"
+style = "pep440"
+dirty = true
+
+[tool.poetry]
+name = "readlif"
+# This version is a placeholder. It is updated at build time by poetry-dynamic-versioning.
+version = "0.0.0"
+description = "Fast Leica Image Format (LIF) file reader"
+readme = "README.md"
+license = "GPLv3"
+authors = [
+    "Nick Negretti",
+    "Arcadia Science <swe@arcadiascience.com>",
+]
+urls = { "Homepage" = "https://github.com/arcadia-science/readlif" }
+
+[tool.poetry.dependencies]
+beautifulsoup4 = ">= 4.12.3"
+pillow = ">=7.2.0"
+python = ">=3.9,<4.0"
+numpy = ">= 2.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "3.5.0"
+pytest = "8.2.1"
+ruff = "0.4.4"
+
+[tool.poetry.group.build.dependencies]
+poetry-dynamic-versioning = { extras = ["plugin"], version = "^1.4.0" }
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^7.0.0"
+sphinxcontrib-apidoc = "^0.5.0"
+
+[tool.setuptools.packages.find]
+where = ["readlif"]
+
+[tool.ruff]
+# The directories to consider when resolving first- vs. third-party imports.
+src = ["."]
+line-length = 100
+indent-width = 4
+include = ["readlif/**/*.py", "tests/**/*.py"]
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore star and unused imports.
+"__init__.py" = ["F403", "F405"]
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+unfixable = []
+
+select = [
+    "B",  # flake8-bugbear
+    "E",  # pycodestyle error
+    "F",  # pyflakes
+    "I",  # isort
+    "UP", # pyupgrade
+    "W",  # pycodestyle warning
+]
+
+# TODO: revisit this ignored rule ("No explicit `stacklevel` keyword argument found").
+ignore = ["B028"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+order-by-type = true
+no-lines-before = ["future", "standard-library"]
