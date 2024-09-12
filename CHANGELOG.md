@@ -57,8 +57,8 @@
 - Added python 3.9 to build testing.
 
 #### 0.2.1
-- Fixed `ZeroDivisionError` when the Z-dimension is defined, but has a length of 0. 
-- Clarified an error message. 
+- Fixed `ZeroDivisionError` when the Z-dimension is defined, but has a length of 0.
+- Clarified an error message.
 - Added fix for truncated files.
 
 #### 0.2.0

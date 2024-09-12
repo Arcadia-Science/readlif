@@ -69,9 +69,9 @@ The two-dimensional images returned by these methods are Pillow objects, so all 
 
 ## Known issues
 
-Below are known issues and limitations with the `readlif` package. If you encounter these issues, please open an issue. 
+Below are known issues and limitations with the `readlif` package. If you encounter these issues, please open an issue.
 
-- There may be an issue where a truncated 16-bit file will load incorrectly; however, this is not tested. 
+- There may be an issue where a truncated 16-bit file will load incorrectly; however, this is not tested.
 
 - There is not support for FlipX, FlipY and SwapXY metadata.
 
