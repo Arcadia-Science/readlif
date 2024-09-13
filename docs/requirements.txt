@@ -1,6 +1,0 @@
-# Requirements for building the docs
-sphinxcontrib-apidoc
-Sphinx
-
-# Requirements for running the program
-Pillow >= 4.2.0

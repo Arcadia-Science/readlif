@@ -1,5 +1,8 @@
-from readlif.reader import _check_magic, _check_mem, _read_int
 import xml.etree.ElementTree as ET
+
+from bs4 import BeautifulSoup
+
+from readlif.reader import _check_magic, _check_mem, _read_int
 
 
 def get_xml(filename):
@@ -26,4 +29,31 @@ def get_xml(filename):
     return xml_root, xml_header
 
 
-# Todo: dump_lif('outdir') function
+def get_image_xml(filename, image_name):
+    """Get a chunk of xml data corresponding to a particular image within a lif file."""
+    _, xml_header = get_xml(filename)
+    xml_data = BeautifulSoup(xml_header, "lxml")
+
+    # get chunk of xml data corresponding to the given image name
+    xml_chunk = None
+    for element in xml_data.find_all("element"):
+        if element["name"] == image_name:
+            xml_chunk = element
+
+    if xml_chunk is None:
+        raise ValueError(f"'{image_name}' not found in xml header.")
+
+    return xml_chunk
+
+
+def get_laser_data(filename, image_name):
+    """Parse lif file for laser data from a particular image acquisition."""
+    # get chunk of xml data corresponding to an acquisition using a laser
+    laser_xml_data = get_image_xml(filename, image_name)
+
+    # parse xml chunk for data corresponding to the laser
+    laser_data = []
+    for laser_values in laser_xml_data.find_all("laservalues"):
+        laser_data.append(laser_values.attrs)
+
+    return laser_data
