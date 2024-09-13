@@ -5,6 +5,7 @@ import warnings
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from functools import reduce
+from itertools import compress
 
 import numpy as np
 from PIL import Image
@@ -829,8 +830,6 @@ class LifFile:
         if len(self.offsets) - len(self.image_list) > 0:
             is_image_bool_list = self._recursive_memblock_is_image(self.xml_root)
             if False in is_image_bool_list:
-                from itertools import compress
-
                 self.offsets = list(compress(self.offsets, is_image_bool_list))
 
         if len(self.image_list) != len(self.offsets) and not truncated:

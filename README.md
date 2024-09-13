@@ -18,7 +18,7 @@ The following is a summary of recent and planned changes to the `readlif` packag
 - [Done] Use ruff for formatting and linting.
 - [Done] migrate to pyproject.toml for package configuration.
 - [Planned] add support for reading 32-bit images.
-- [Planned] add support for extracting relevant metadata from the raw XML metadata embedded in LIFF files.
+- [Planned] add support for extracting relevant metadata from the raw XML metadata embedded in LIF files.
 - [Planned] refactor the `get_plane` method to make it easier to use.
 - [Planned] improve tests using realistic test files from internal sources.
 
