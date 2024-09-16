@@ -41,7 +41,7 @@ def test_lif_file_get_iter_image(xyzt_example_lif_filepath):
 
 def test_lif_file_with_new_lasx(artifacts_dirpath):
     """
-    TODO(KC): figure out what is special or "new" about the new_lasx.lif file.
+    TODO(KC): figure out what is special or "new" about the "new_lasx.lif" file.
     """
     lif_file = LifFile(artifacts_dirpath / "misc" / "new_lasx.lif")
     assert len(lif_file.image_list) == 1
@@ -49,8 +49,8 @@ def test_lif_file_with_new_lasx(artifacts_dirpath):
 
 def test_lif_image_get_frame_out_of_range_args(xyzt_example_lif_filepath):
     lif_image = LifFile(xyzt_example_lif_filepath).get_image(0)
-    args_for_get_grame = [(10, 0, 0), (0, 10, 0), (0, 0, 10), (0, 0, 0, 10)]
-    for args in args_for_get_grame:
+    args_for_get_frame = [(10, 0, 0), (0, 10, 0), (0, 0, 10), (0, 0, 0, 10)]
+    for args in args_for_get_frame:
         with pytest.raises(ValueError):
             lif_image.get_frame(*args)
 
@@ -112,7 +112,7 @@ def test_lif_image_get_plane_on_xz_image(xz_example_lif_filepath):
 
 def test_lif_image_get_plane_nonexistent_plane(artifacts_dirpath):
     """
-    TODO: determine if another, less mysterious LIF file can be used to test this.
+    TODO: determine if another, less mysterious LIF file can be used for this test.
     """
     lif_image = LifFile(
         artifacts_dirpath / "misc" / "LeicaLASX_wavelength-sweep_example.lif"
