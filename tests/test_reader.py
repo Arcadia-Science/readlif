@@ -6,15 +6,15 @@ from readlif.reader import LifFile
 
 def test_lif_file_with_file_path(valid_lif_filepath):
     lif_image = LifFile(valid_lif_filepath).get_image(0)
-    # Runs without error
+    # This should not raise an error.
     lif_image.get_frame(z=0, t=0, c=0)
 
 
 def test_lif_file_with_file_buffer(valid_lif_filepath):
     with open(valid_lif_filepath, "rb") as file:
         lif_image = LifFile(file).get_image(0)
-        lif_image_frame = lif_image.get_frame(z=0, t=0, c=0)
-        assert lif_image_frame
+        # This should not raise an error.
+        lif_image.get_frame(z=0, t=0, c=0)
 
 
 def test_lif_file_with_non_lif_files(tmp_path, artifacts_dirpath):
@@ -34,9 +34,12 @@ def test_lif_file_with_single_image_lif(valid_single_image_lif_filepath):
         lif_file.get_image(1)
 
 
-def test_lif_file_get_iter_image(xyzt_example_lif_filepath):
-    images = [image for image in LifFile(xyzt_example_lif_filepath).get_iter_image()]
+def test_lif_file_get_iter_image(valid_single_image_lif_filepath, valid_multi_image_lif_filepath):
+    images = [image for image in LifFile(valid_single_image_lif_filepath).get_iter_image()]
     assert len(images) == 1
+
+    images = [image for image in LifFile(valid_multi_image_lif_filepath).get_iter_image()]
+    assert len(images) > 1
 
 
 def test_lif_file_with_new_lasx(artifacts_dirpath):

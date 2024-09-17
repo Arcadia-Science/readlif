@@ -25,9 +25,17 @@ def valid_single_image_lif_filepath(artifacts_dirpath):
 
 
 @pytest.fixture
+def valid_multi_image_lif_filepath(artifacts_dirpath):
+    """
+    The filepath to a LIF file that contains multiple images.
+    """
+    return artifacts_dirpath / "xz-example" / "xz-example.lif"
+
+
+@pytest.fixture
 def valid_tiff_filepath(artifacts_dirpath):
     """
-    The filepath to a TIFF file that is valid and can be read by the reader.
+    The filepath to a TIFF file that is valid.
     """
     return artifacts_dirpath / "misc" / "valid-tiff.tif"
 
