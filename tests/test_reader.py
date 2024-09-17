@@ -52,11 +52,19 @@ def test_lif_file_with_new_lasx(artifacts_dirpath):
 
 def test_lif_image_get_frame_out_of_range_args(xyzt_example_lif_filepath):
     lif_image = LifFile(xyzt_example_lif_filepath).get_image(0)
-    args_for_get_frame = [(10, 0, 0), (0, 10, 0), (0, 0, 10), (0, 0, 0, 10)]
-    for args in args_for_get_frame:
-        with pytest.raises(ValueError):
-            lif_image.get_frame(*args)
 
+    for dimension_kwarg, lif_image_attr in [
+        ("z", "nz"),
+        ("t", "nt"),
+        ("c", "channels"),
+        ("m", "n_mosaic"),
+    ]:
+        max_index_for_dimension = getattr(lif_image, lif_image_attr) - 1
+        lif_image.get_frame(**{dimension_kwarg: max_index_for_dimension})
+        with pytest.raises(ValueError):
+            lif_image.get_frame(**{dimension_kwarg: max_index_for_dimension + 1})
+
+    # TODO: use a better-justified out of range index for this test.
     with pytest.raises(ValueError):
         lif_image._get_item(100)
 
