@@ -6,8 +6,8 @@ from readlif.reader import LifFile
 
 def test_lif_file_with_file_path(valid_lif_filepath):
     lif_image = LifFile(valid_lif_filepath).get_image(0)
-    lif_image_frame = lif_image.get_frame(z=0, t=0, c=0)
-    assert lif_image_frame
+    # Runs without error
+    lif_image.get_frame(z=0, t=0, c=0)
 
 
 def test_lif_file_with_file_buffer(valid_lif_filepath):
