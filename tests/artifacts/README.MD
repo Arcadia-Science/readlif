@@ -1,12 +1,14 @@
 # Test artifacts
 
-This directory contains test artifacts for the `readlif` package. These artifacts consist of example LIF files from various sources, sometimes paired with expected outputs in the form of individual TIFF files.
+This directory contains test artifacts for the `readlif` package. These artifacts consist of example LIF files from various sources. In some cases, they are paired with expected outputs in the form of TIFF files containing the image data for selected 2D (X-Y) planes in the corresponding LIF file. In these cases, there is one TIFF file for each plane, and the TIFF files are named according to the plane they represent.
 
 ## About the LIF files
 
+These are brief informal notes about the contents of the LIF files in this directory. They were determined by manually opening the LIF files in Fiji using the BioFormats plugin and examining the metadata.
+
 ### `xyzt-example/xyzt-example.lif`
 
-Contains a single image. 1024 x 1024. 8-bit. Shape: C2, T4, Z3.
+Contains a single image. 1024 x 1024. 8-bit. Shape: 2C, 3T, 3Z.
 
 ### `xz-example/xz-example.lif`
 
