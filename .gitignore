@@ -1,30 +1,69 @@
-# Ignore build directories
-build/
-dist/
+/ignore
 
-# Ignore Sphinx doc build
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.env
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+.hypothesis/
+.napari_cache
+
+# Translations
+*.mo
+*.pot
+
+# Sphinx documentation
 docs/_build/
 
-# Ignore IntelliJ IDEA directory and project files
-.idea
-*.iml
+# MkDocs documentation
+/site/
 
-*.sync
-#Ignore these hidden files from Mac OS X
+# PyBuilder
+target/
+
+# Pycharm and VSCode
+.idea/
+venv/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# OS
 .DS_Store
-
-#Ignore dir created during install
-readlif.egg-info
-
-#Ignore all compiled python files (e.g. from running the unit tests):
-*.pyc
-*.pyo
-
-#Ignore testing files
-ignore.py
-.tox
-.coverage
-htmlcov
-
-#Ignore testing files that I don't have permission to share
-tests/private/*
