@@ -18,7 +18,7 @@ readme = "README.md"
 license = "GPLv3"
 authors = [
     "Nick Negretti",
-    "Arcadia Science <swe@arcadiascience.com>",
+    "Keith Cheveralls <keith.chev@gmail.com>",
 ]
 urls = { "Homepage" = "https://github.com/arcadia-science/readlif" }
 
@@ -39,6 +39,15 @@ poetry-dynamic-versioning = { extras = ["plugin"], version = "^1.4.0" }
 [tool.poetry.group.docs.dependencies]
 sphinx = "^7.0.0"
 sphinxcontrib-apidoc = "^0.5.0"
+
+[[tool.poetry.source]]
+name = "pypi"
+priority = "primary"
+
+[[tool.poetry.source]]
+name = "pypi_test"
+# Note: poetry only support the "legacy" API.
+url = "https://test.pypi.org/legacy/"
 
 [tool.setuptools.packages.find]
 where = ["readlif"]
