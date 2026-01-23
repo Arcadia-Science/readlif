@@ -229,13 +229,9 @@ class LifImage:
             if (requested_dims[i] + 1) > self.dims_n.get(i, 0):
                 raise ValueError(f"Requested frame in dimension {str(i)} " f"doesn't exist")
 
-        if isinstance(self.filename, (str, bytes, os.PathLike)):
-            image = open(self.filename, "rb")
-        elif isinstance(self.filename, io.IOBase):
-            image = self.filename
-        else:
+        if not isinstance(self.filename, (str, bytes, os.PathLike, io.IOBase)):
             raise TypeError(
-                f"expected str, bytes, os.PathLike, or io.IOBase, " f"not {type(self.filename)}"
+                f"expected str, bytes, os.PathLike, or io.IOBase, not {type(self.filename)}"
             )
 
         bytes_per_pixel = self.bit_depth[0] // 8
