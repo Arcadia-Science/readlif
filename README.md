@@ -1,26 +1,13 @@
 # readlif
 
-The `readlif` package is a fast, pure Python reader for Leica Image Format (LIF) files. It supports Python 3.9 and above.
+> **This project is archived and no longer maintained.**
+> Please use **[liffile](https://github.com/cgohlke/liffile)** instead — it is actively developed, more robust, and more feature complete.
 
-This code is inspired by the [Open Microscopy Bio-Formats project](https://github.com/openmicroscopy/bioformats).
+---
 
-Auto-generated documentation is available [here](https://readlif.readthedocs.io/en/latest/).
+The `readlif` package was a pure Python reader for Leica Image Format (LIF) files.
 
-## Project status: Ownership change
-
-In September 2024, ownership of the `readlif` package was transferred from [Nick Negretti](https://github.com/nimne), its original author, to [Arcadia Science](https://github.com/arcadia-Science/). We are committed to maintaining and improving this project for the imaging community as part of [Arcadia's committment to open science](https://www.arcadiascience.com/about/ecosystem). For any questions or support, please open an issue in this repo.
-
-## Roadmap
-
-The following is a summary of recent and planned changes to the `readlif` package by Arcadia Science:
-
-- [Done] Fix a bug related to reading 16-bit images.
-- [Done] Use ruff for formatting and linting.
-- [Done] migrate to pyproject.toml for package configuration.
-- [Planned] add support for reading 32-bit images.
-- [Planned] add support for extracting relevant metadata from the raw XML metadata embedded in LIF files.
-- [Planned] refactor the `get_plane` method to make it easier to use.
-- [Planned] improve tests using realistic test files from internal sources.
+This code was inspired by the [Open Microscopy Bio-Formats project](https://github.com/openmicroscopy/bioformats).
 
 ## Installation
 
@@ -86,3 +73,7 @@ Below are known issues and limitations with the `readlif` package. If you encoun
 As of 0.3.0, `reaflif` supports images with bit depths greater than 8.
 
 However, while some images will be returned as 16-bit arrays, the image data in the LIF file may actually be 10- or 12-bit. The original bit depth of each channel can be found in the `bit_depth` attribute of `LifImage`.
+
+## Note about ownership change
+
+In September 2024, ownership of the `readlif` package was transferred from [Nick Negretti](https://github.com/nimne), its original author, to [Arcadia Science](https://github.com/arcadia-Science/). In March 2025, the project was archived in favor of [liffile](https://github.com/cgohlke/liffile), which is actively developed, more robust, and more feature complete.
