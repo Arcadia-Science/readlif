@@ -1,7 +1,7 @@
 # readlif
 
 > **This project is archived and no longer maintained.**
-> Please use **[liffile](https://github.com/cgohlke/liffile)** instead — it is actively developed, more robust, and more feature complete.
+> Please use **[liffile](https://github.com/cgohlke/liffile)** instead — it is actively maintained, more robust, and more feature complete.
 
 ---
 
