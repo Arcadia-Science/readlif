@@ -76,4 +76,4 @@ However, while some images will be returned as 16-bit arrays, the image data in 
 
 ## Note about ownership change
 
-In September 2024, ownership of the `readlif` package was transferred from [Nick Negretti](https://github.com/nimne), its original author, to [Arcadia Science](https://github.com/arcadia-Science/). In March 2025, the project was archived in favor of [liffile](https://github.com/cgohlke/liffile), which is actively developed, more robust, and more feature complete.
+In September 2024, ownership of the `readlif` package was transferred from [Nick Negretti](https://github.com/nimne), its original author, to [Arcadia Science](https://github.com/arcadia-Science/). In March 2025, the project was archived in favor of [liffile](https://github.com/cgohlke/liffile), which is actively maintained, more robust, and more feature complete.
